@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="145.79996mm"
+   height="117.98689mm"
+   viewBox="0 0 145.79996 117.98689"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.3 (5aff6ba, 2018-11-25)"
+   sodipodi:docname="schematic_setup.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="578.19775"
+     inkscape:cy="263.66473"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1837"
+     inkscape:window-height="1025"
+     inkscape:window-x="83"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-31.342903,-111.38453)">
+    <path
+       style="opacity:1;fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:1.88976383;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0"
+       d="M 119.40625,421.92578 V 603.54297 H 563.45117 V 421.92578 Z m 0,262.42774 V 865.9707 H 563.45117 V 684.35352 Z"
+       transform="scale(0.26458333)"
+       id="rect4518"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:0.372;fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0"
+       id="rect4997"
+       width="117.48689"
+       height="21.381124"
+       x="31.592903"
+       y="159.68741" />
+    <circle
+       style="opacity:1;fill:#d40000;fill-opacity:1;stroke:#ff5555;stroke-width:0.75203568;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0"
+       id="path4999"
+       cx="90.336342"
+       cy="170.37798"
+       r="2.813947" />
+    <rect
+       style="opacity:1;fill:#999999;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0"
+       id="rect5001"
+       width="3.2127976"
+       height="32.546158"
+       x="173.68007"
+       y="154.10489" />
+  </g>
+</svg>

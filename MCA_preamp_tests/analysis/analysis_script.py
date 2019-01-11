@@ -8,6 +8,7 @@ from scipy.optimize import curve_fit
 import PMCA as pmca
 import nicholai_math as nm
 
+
 norm = 500
 # run13 = pmca.e3Shift(pickle.load(open('/media/gheed/Seagate_Expansion_Drive1/Data/TNT/MCA_preamp_tests/Run13.pkl', 'rb')),norm)
 # run14 = pmca.he3Shift(pickle.load(open('/media/gheed/Seagate_Expansion_Drive1/Data/TNT/MCA_preamp_tests/Run14.pkl', 'rb')),norm)

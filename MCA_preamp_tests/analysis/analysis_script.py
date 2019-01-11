@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, "/home/gheed/Documents/projects/TNT/code_repo")
+sys.path.insert(0, "/home/gheed/Documents/projects/TNT/code_repo") #Import my own libraries
 import pickle
 import pandas as pd
 import numpy as np

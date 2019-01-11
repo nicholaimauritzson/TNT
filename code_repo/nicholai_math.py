@@ -3,10 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-# ------------------------------------------------------------------------------
-# Library of methods for regular mathematical operations
+# ----------------------------------------------------------
+#  __  __       _   _     
+# |  \/  | __ _| |_| |__  
+# | |\/| |/ _` | __| '_ \ 
+# | |  | | (_| | |_| | | |
+# |_|  |_|\__,_|\__|_| |_|                      
+# ----------------------------------------------------------
+# Library of methods for regular mathematical operations. 
+# Some methods are based on pandas DataFrames.
+# 
 # By Nicholai Mauritzson
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------
 
 def simpleIntegrate(df, col=None, start=0, stop=None): #WORK IN PROGRESS
     """
@@ -73,3 +81,22 @@ def gaussFunc(x, a, x0, sigma):
     """
 
     return a * np.exp(-(x - x0)**2 / (2 * sigma**2))
+
+def ratio(df1, df2, col):
+    """
+        1) Takes two pandas data frames 'df1' and 'df2' as inputs and name of column 'col' to use.
+        2) Calculated the ratio between each data value in column 'col' as df1(i)/df2(i).
+           NOTE: if df1(i) = 0 then ratio(i) = 0
+           NOTE: if df2(i) = 0 then ratio(i) = 0
+        3) Returns list 'ratio'
+        ---------------------------------------------------------------------
+        Nicholai Mauritzson
+        Edit: 2019-01-11
+    """
+    ratio = []
+    for i in range(len(df1)):
+        if df1[str(col)][i] == 0 or df2[str(col)][i] == 0: #Treat nominator and denominator = 0 instances.
+            ratio.append(0)
+        else:
+            ratio.append(df1[str(col)][i] / df2[str(col)][i])
+    return ratio

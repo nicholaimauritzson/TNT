@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 import nicholai_math as nm
 
 # ------------------------------------------------------------------------------
+#  ____            _        _     __  __  ____    _    
+# |  _ \ ___   ___| | _____| |_  |  \/  |/ ___|  / \   
+# | |_) / _ \ / __| |/ / _ \ __| | |\/| | |     / _ \  
+# |  __/ (_) | (__|   <  __/ |_  | |  | | |___ / ___ \ 
+# |_|   \___/ \___|_|\_\___|\__| |_|  |_|\____/_/   \_\
+# ------------------------------------------------------------------------------
 # Library of methods for manipulation of data files from MCA8000D (Pocket MCA)
 # By Nicholai Mauritzson
 # ------------------------------------------------------------------------------
@@ -101,22 +107,3 @@ def he3Shift(df, fullAbsPos):
     
     print('~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~^~')
     return df
-
-def ratio(df1, df2, col):
-    """
-        1) Takes two pandas data frame 'df1' and 'df2' as inputs.
-        2) Calculated the ratio between each data value in column 'col' as df1(i)/df2(i).
-           NOTE: if df1(i) = 0 then ratio(i) = 0
-           NOTE: if df2(i) = 0 then ratio(i) = 0
-        3) Returns list 'ratio'
-        ---------------------------------------------------------------------
-        Nicholai Mauritzson
-        Edit: 2019-01-11
-    """
-    ratio = []
-    for i in range(len(df1)):
-        if df1[str(col)][i] == 0 or df2[str(col)][i] == 0: #Treat nominator and denominator = 0 instances.
-            ratio.append(0)
-        else:
-            ratio.append(df1[str(col)][i] / df2[str(col)][i])
-    return ratio

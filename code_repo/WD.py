@@ -15,8 +15,9 @@ def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=
         Inputs: What are the inputs and what do they do/represent? Explain each one and any relevant expections which exists.
 
         ---------------------------------------------------------------------
-        Nicholai Mauritzson
+        Nicholai Mauritzson (nicholai.mauritzson@nuclear.lu.se)
         Edit: 2019-01-16
+        [original code by Rasmus Kjær Høier 2018-2019]
     """
     t0 = time.time() 
     print("Scanning the file to get number of chunks:")

@@ -4,12 +4,75 @@ import csv
 import sys
 from itertools import islice
 import time
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from math import sqrt
 from math import atan
 
+def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False, chunksize=2**18, outpath='data/chunk'):
+    t0 = time.time() 
+    print("Scanning the file to get number of chunks:")
+    nChunks = int(round(0.5 + sum(1 for row in open(filename, 'r'))/chunksize))
+    t1 = time.time()
+    print("Scan time: ", t1-t0, ' seconds')
+    print("Will generate ", nChunks)
+    Chunks = pd.read_csv(filename, header=None, usecols=[5,7], names=['timestamp', 'samples'], chunksize=chunksize)
+    count=0
+    tdummy1=t1
+    for df in Chunks:
+        tdummy2=tdummy1
+        print("Chunk number", count + 1, "/", nChunks)
+        df['samples'] = df.samples.str.split().apply(lambda x: np.array(x, dtype=np.int16))
 
-def basic_framer(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0):
+        samples = np.array([None]*df.shape[0])
+        timestamp = np.array([0]*df.shape[0], dtype=np.int64)
+        amplitude = np.array([0]*df.shape[0], dtype=np.int16)
+        peak_index = np.array([0]*df.shape[0], dtype=np.int16)
+        valid_event = np.array([True]*df.shape[0], dtype=np.int16)
+        ref_point_rise = np.array([0]*df.shape[0], dtype=np.int32)
+        ref_point_fall = np.array([0]*df.shape[0], dtype=np.int32)
+        nTimesReset = 0
+
+        for i in range(0, df.shape[0]):
+            u = chunksize*count + i
+            k = round(100*i/df.shape[0])
+            sys.stdout.write("\rGenerating dataframe %d%%" % k)
+            sys.stdout.flush()
+
+            Baseline = int(round(np.average(df.samples[u][0:20])))
+            peak_index[i] = np.argmin(df.samples[u])
+
+            #Check that only events above threshold are accepted and that first 20 samples can give a good baseline.
+            if abs(df.samples[u][peak_index[i]] - Baseline) < threshold or (max(df.samples[u][0:20])-min(df.samples[u][0:20])) > 3:
+                valid_event[i] = False
+                continue
+            else:
+                samples[i] = df['samples'][u] - Baseline
+                ref_point_rise[i], ref_point_fall[i] = cfd(samples=samples[i], frac=frac, peak_index=peak_index[i])
+                amplitude[i] = samples[i][peak_index[i]]
+                timestamp[i] = df['timestamp'][u]
+                if i > 0:
+                    if timestamp[i] < timestamp[i-1]-nTimesReset*2147483647:
+                        nTimesReset += 1
+                    timestamp[i] += nTimesReset*2147483647
+        df['timestamp'] = timestamp
+        df['samples'] = samples
+        df['valid_event'] = valid_event
+        df['amplitude'] = amplitude
+        df['peak_index'] = peak_index
+        df['ref_point_rise'] = ref_point_rise
+        df['ref_point_fall'] = ref_point_fall
+        df = df.query('valid_event == True').reset_index()
+        df.to_hdf(outpath+'.h5', key='key%s'%count)
+        df = df.drop('samples', axis = 1)
+        df.to_hdf(outpath+'cooked.h5', key='key%s'%count)
+        tdummy1=time.time()
+        print('chunk ', count, ' processed in ', tdummy1-tdummy2, ' seconds'  )
+        count += 1
+
+
+
+
+def basic_framer(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False):
     #Get number of lines
     if nlines == 0:
         nlines=sum(1 for line in (open(filename)))
@@ -61,7 +124,7 @@ def basic_framer(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesRes
                     samples[event_index] -= baseline
                     #check the polarity and check if the pulse crosses threshold and if it is properly contained
                     peak_index[event_index] = np.argmax(np.absolute(samples[event_index]))
-                    if np.absolute(samples[event_index][peak_index[event_index]]) < threshold:
+                    if (np.absolute(samples[event_index][peak_index[event_index]]) < threshold and no_skip==False):
                         continue
                     else:
                         if samples[event_index][peak_index[event_index]] < 0:
@@ -70,7 +133,7 @@ def basic_framer(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesRes
                         height[event_index] = samples[event_index][peak_index[event_index]]
                         refpoint_rise[event_index], refpoint_fall[event_index] = cfd(samples[event_index], frac, peak_index[event_index])
                         #throw away events marked problematic by cfd alg. and events without room for tail.
-                        if refpoint_rise[event_index]<0 or  refpoint_fall[event_index]<0:
+                        if ((refpoint_rise[event_index]<0 and no_skip==False) or  (refpoint_fall[event_index]<0 and no_skip==False)):
                             continue
                         event_index += 1
         #throw away empty rows.
@@ -125,25 +188,7 @@ def get_gates(frame, lg=500, sg=55, offset=10):
     frame['theta']=theta
     return 0
 
-def get_gates2(frame, step=20, Ngates = 25, offset=10):
-    Ngates = 25
-    g = [np.array([0] * len(frame), dtype=np.int16)] * Ngates
-    for i in range(0, len(frame)):
 
-        k = round(100*i/len(frame))
-        sys.stdout.write("\rCalculating gates %d%%" % k)
-        sys.stdout.flush()
-
-        start = frame.peak_index[i]-offset
-        g[0][i]=np.trapz(frame.samples[i][start:start+step])
-        for t in range(1,Ngates):
-            g[t][i] = np.trapz(frame.samples[i][start:start+step])
-            g[t][i] += g[t-1][i]
-            start+=20
-    for i in range (0, len(frame)):
-        for t in range(0, Ngates):
-            frame['g%d'%t]=g[t][i]
-    return 0
 
 def get_species(df, X=[0, 1190,2737, 20000], Y=[0, 0.105, 0.148, 0.235]):
     species=np.array([-1]*len(df), dtype=np.int8)
@@ -177,18 +222,56 @@ def get_species(df, X=[0, 1190,2737, 20000], Y=[0, 0.105, 0.148, 0.235]):
 
 def cfd(samples, frac, peak_index):
     peak = samples[peak_index]
+    print('frac*peak = %d0'%(peak*frac))
     rise_index = 0
     fall_index = 0
     #find the cfd rise point
     for i in range(0, peak_index):
-        if samples[i] > frac*peak:
+        if samples[i] < frac * peak:
+            rise_index = i
+            break
+        else:
+            rise_index = 0
+        #find the cfd fall point
+        for i in range(peak_index, len(samples)):
+            if samples[i] > frac*peak:
+                fall_index = i
+                break
+            else:
+                fall_index = 0
+        slope_rise = (samples[rise_index] - samples[rise_index-1])#divided by 1ns
+        slope_fall = (samples[fall_index] - samples[fall_index-1])#divided by 1ns
+        #slope equal 0 is a sign of error. fx a pulse located
+        #in first few bins and already above threshold in bin 0.
+        #rise
+        if slope_rise == 0:
+            print('\nslope == 0!!!!\nindex=', rise_index,'\n', samples[rise_index-5:rise_index+5])
+            tfine_rise = -1
+        else:
+            tfine_rise = 1000*(rise_index-1) + int(round(1000*(peak*frac-samples[rise_index-1])/slope_rise))
+            #fall
+        if slope_fall == 0:
+            print('\nslope == 0!!!!\nindex=', fall_index,'\n', samples[fall_index-5:fall_index+5])
+            tfine_fall = -1
+        else:
+            tfine_fall = 1000*(fall_index-1) + int(round(1000*(peak*frac-samples[fall_index-1])/slope_fall))
+        return tfine_rise, tfine_fall
+
+
+def cfd(samples, frac, peak_index):
+    peak = samples[peak_index]
+    rise_index = 0
+    fall_index = 0
+    #find the cfd rise point
+    for i in range(0, peak_index):
+        if samples[i] < frac * peak:
             rise_index = i
             break
         else:
             rise_index = 0
     #find the cfd fall point
     for i in range(peak_index, len(samples)):
-        if samples[i] < frac*peak:
+        if samples[i] > frac*peak:
             fall_index = i
             break
         else:
@@ -212,7 +295,7 @@ def cfd(samples, frac, peak_index):
     return tfine_rise, tfine_fall
 
 
-def get_frames(filename, threshold, frac=0.3, outpath='/home/rasmus/Documents/ThesisWork/code/tof/data/'):
+def get_frames(filename, threshold, frac=0.3, no_skip=False, outpath='/home/rasmus/Documents/ThesisWork/code/tof/data/'):
     time0 = time.time()
     nlines=sum(1 for line in (open(filename)))
     nlinesBlock = 2**21 # lines per block
@@ -227,7 +310,7 @@ def get_frames(filename, threshold, frac=0.3, outpath='/home/rasmus/Documents/Th
     nTimesReset = 0
     for i in range(0, (nBlocks+1)):
         print('\n -------------------- \n frame', i+1, '/', (nBlocks+1), '\n --------------------')
-        Frame, nTimesReset = basic_framer(filename, threshold, frac, nlines=Blocklines[i], startline=i*nlinesBlock, nTimesReset=nTimesReset)
+        Frame, nTimesReset = basic_framer(filename, threshold, frac, nlines=Blocklines[i], startline=i*nlinesBlock, nTimesReset=nTimesReset, no_skip=no_skip)
         get_gates(Frame)
         get_species(Frame)
         if outpath!='':

@@ -18,7 +18,7 @@
 #          PCI 0 0 BA   VME digitizer through V2718 (BA = BaseAddress of the VME board, 32 bit hex)
 #OPEN USB 0 0
 #OPEN USB 0 32100000
-OPEN PCI 0 0 0
+OPEN PCI 1 0 0
 #OPEN PCI 0 0 32100000
 
 # Correction Level to use with x742 Digitizers Family

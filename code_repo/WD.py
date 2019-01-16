@@ -16,8 +16,8 @@
 #       A collections of methods for importing and manipulating 
 #                 outputs from CAEN WaveDump program.
 #
-#   Author: Rasmus Kjær Høier 2018-2019
-#   Mod: Nicholai Mauritzson (nicholai.mauritzson@nuclear.lu.se)
+#   Author: Rasmus Kjær Høier, Nicholai Mauritzson 2018-2019
+#                              nicholai.mauritzson@nuclear.lu.se
 # -------------------------------------------------------------------
 
 import numpy as np

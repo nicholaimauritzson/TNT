@@ -26,13 +26,21 @@ def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=
     print("Scan time: ",t1-t0, "seconds")
     print("Will generate ",nChunks," chunks")
     Chunks = pd.read_csv(filename, header=None, usecols=[5,7], names=["timestamp", "samples"], chunksize=chunksize)
-    count = 0
+    
+    count = 0 # Counter for numbering chunks for loop add +1 for itterating over 
     tdummy1 = t1
+    
+    # Looping through all chunks and saving/calculating relevant data
     for df in Chunks:
         tdummy2 = tdummy1
         print("Chunk number", count + 1, "/", nChunks)
         df["samples"] = df.samples.str.split().apply(lambda x: np.array(x, dtype=np.int16))
 
+        # -------------------------------------------------------
+        # This section of code seems to preallocated memory for the 
+        # various lists which will go into the final DataFrame.
+        
+        # QUESTION: why is this run over and over in the loop? To clear the previous chunk's data?
         samples = np.array([None]*df.shape[0])
         timestamp = np.array([0]*df.shape[0], dtype=np.int64)
         amplitude = np.array([0]*df.shape[0], dtype=np.int16)
@@ -41,7 +49,10 @@ def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=
         ref_point_rise = np.array([0]*df.shape[0], dtype=np.int32)
         ref_point_fall = np.array([0]*df.shape[0], dtype=np.int32)
         nTimesReset = 0
+        # -------------------------------------------------------
 
+        # -------------------------------------------------------
+        # QUESTION: What are "u"and "k"?
         for i in range(0, df.shape[0]):
             u = chunksize*count + i
             k = round(100*i/df.shape[0])
@@ -61,9 +72,13 @@ def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=
                 amplitude[i] = samples[i][peak_index[i]]
                 timestamp[i] = df["timestamp"][u]
                 if i > 0:
-                    if timestamp[i] < timestamp[i-1]-nTimesReset*2147483647:
+                    if timestamp[i] < timestamp[i-1]-nTimesReset*2147483647: #QUESTION: What is this number? Is it OK for hardcode?
                         nTimesReset += 1
                     timestamp[i] += nTimesReset*2147483647
+        
+        # -------------------------------------------------------
+        # Section of code for saving all collected and calculated information in
+        # relevant DataFrame columns.
         df["timestamp"] = timestamp
         df["samples"] = samples
         df["valid_event"] = valid_event
@@ -72,12 +87,18 @@ def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=
         df["ref_point_rise"] = ref_point_rise
         df["ref_point_fall"] = ref_point_fall
         df = df.query("valid_event == True").reset_index()
+        
+        # -------------------------------------------------------
+        # Section for saving DataFrame
         df.to_hdf(outpath+".h5", key="key%s"%count)
         df = df.drop("samples", axis = 1)
         df.to_hdf(outpath+"cooked.h5", key="key%s"%count)
+        # -------------------------------------------------------
         tdummy1=time.time()
-        print("chunk", count, "processed in", tdummy1-tdummy2, "seconds"  )
-        count += 1
+        print("chunk", count, "processed in", tdummy1-tdummy2, "seconds"  ) 
+        count += 1  
+        # END OF CHUNK LOOP
+        # -------------------------------------------------------
 
 
 # def basic_framer(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False):

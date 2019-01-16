@@ -1,20 +1,22 @@
+#http://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow
+# ----------------------------------------------------------
+#          ███╗   ███╗ █████╗ ████████╗██╗  ██╗
+#          ████╗ ████║██╔══██╗╚══██╔══╝██║  ██║
+#          ██╔████╔██║███████║   ██║   ███████║
+#          ██║╚██╔╝██║██╔══██║   ██║   ██╔══██║
+#          ██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║
+#          ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+#  A library of methods for regular mathematical operations.
+#       Some methods are based on pandas DataFrames
+#       
+#   Author: Nicholai Mauritzson 2018-2019
+#           nicholai.mauritzson@nuclear.lu.se
+# ----------------------------------------------------------
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
-# ----------------------------------------------------------
-#  __  __       _   _     
-# |  \/  | __ _| |_| |__  
-# | |\/| |/ _` | __| '_ \ 
-# | |  | | (_| | |_| | | |
-# |_|  |_|\__,_|\__|_| |_|                      
-# ----------------------------------------------------------
-# Library of methods for regular mathematical operations. 
-# Some methods are based on pandas DataFrames.
-# 
-# By Nicholai Mauritzson
-# ----------------------------------------------------------
 
 def simpleIntegrate(df, col=None, start=0, stop=None): #WORK IN PROGRESS
     """

@@ -10,10 +10,9 @@ from math import atan
 
 def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False, chunksize=2**18, outpath='data/chunk'):
     """
-        Method needs documenting.
+        Method needs general documenting.
 
-        - What are the inputs and what do they do/represent?
-        - Make method handle a variable amount of channels. Right now I think I only works when you have two digitizer channels enabled.
+        Inputs: What are the inputs and what do they do/represent? Explain each one and any relevant expections which exists.
 
         ---------------------------------------------------------------------
         Nicholai Mauritzson

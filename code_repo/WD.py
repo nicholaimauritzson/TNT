@@ -19,6 +19,7 @@
 #   Author: Rasmus Kjær Høier 2018-2019
 #   Mod: Nicholai Mauritzson (nicholai.mauritzson@nuclear.lu.se)
 # -------------------------------------------------------------------
+
 import numpy as np
 import pandas as pd
 import csv

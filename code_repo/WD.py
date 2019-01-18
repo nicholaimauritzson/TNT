@@ -143,7 +143,7 @@ def load_data(filename, threshold, frac=0.3, skip_badevents=True, chunksize=2**1
 #         ---------------------------------------------------------------------
 #         Nicholai Mauritzson (nicholai.mauritzson@nuclear.lu.se)
 #         Edit: 2019-01-16
-#         [original code by Rasmus Kjær Høier 2018-2019]
+#         [original code by Rasmus Kjaer Hoier 2018-2019]
 #     """
 #     t0 = time.time() 
 #     print("Scanning the file to get number of chunks:")

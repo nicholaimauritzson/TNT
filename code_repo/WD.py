@@ -29,40 +29,54 @@ import time
 import matplotlib.pyplot as plt
 from math import sqrt
 from math import atan
+import dask.dataframe as dd
 
-def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False, chunksize=2**18, outpath='data/chunk'):
+def dask_chewer(filename, outpath):
+    A = dd.read_csv(filename, header=None, names=['a','b','c','index','e','timestamp','g', 'samples'])
+    A=A[['index','timestamp','samples']]
+    A.compute()
+    A.to_hdf(outpath, 'a')
+
+
+def load_data(filename, threshold, frac=0.3, skip_badevents=True, chunksize=2**16, outpath='data/chunk', use_dask=False, daskoutpath='data/daskframe.h5'):
     """
-        Method needs general documenting.
-
-        Inputs: What are the inputs and what do they do/represent? Explain each one and any relevant expections which exists.
-
-        ---------------------------------------------------------------------
-        Nicholai Mauritzson (nicholai.mauritzson@nuclear.lu.se)
-        Edit: 2019-01-16
-        [original code by Rasmus Kjær Høier 2018-2019]
-    """
-    t0 = time.time() 
-    print("Scanning the file to get number of chunks:")
-    nChunks = int(round(0.5 + sum(1 for row in open(filename, "r"))/chunksize))
-    t1 = time.time()
-    print("Scan time: ",t1-t0, "seconds")
-    print("Will generate ",nChunks," chunks")
-    Chunks = pd.read_csv(filename, header=None, usecols=[5,7], names=["timestamp", "samples"], chunksize=chunksize)
+        load_data()\nArguments and default inputs: 
+        \nfilename: path to datafile, 
+        \nthreshold: absolute value, unit ADC count, range 0 to 1023, 
+        \nskip_badevents=True: Wether to skip events where baseline was noisy or threshold was not surpassed, 
+        \nchunksize=2**16: the size of the chunks. for 8gB RAM 2**16-2**17 seems to be the limit, 
+        \noutpath='data/chunk': path to outputfile location, 
+        \nuse_dask=False, 
+        \ndaskoutpath='data/daskframe.h5'):
+        """
+    t0 = time.time()
+    if use_dask:
+        print("processig file with dask")
+        dask_chewer(filename, daskoutpath)
+        print("opening dask generated dataframe")
+        Chunks=pd.read_hdf(daskoutpath, chunksize=chunksize)
+        t1 = time.time()
+        print("dask processing time: ", t1-t0, ' seconds')
+    else:
+        print("Scanning the file to get number of chunks:")
+        nChunks = int(round(0.5 + sum(1 for row in open(filename, 'r'))/chunksize))
+        t1 = time.time()
+        print("Scan time: ", t1-t0, ' seconds')
+        print("Will generate ", nChunks)
+        Chunks = pd.read_csv(filename, header=None, usecols=[5,7], names=['timestamp', 'samples'], chunksize=chunksize)
+    count=0
+    tdummy1=t1
+    nTimesReset = 0
     
-    count = 0 # Counter for numbering chunks for loop add +1 for itterating over 
-    tdummy1 = t1
-    
-    # Looping through all chunks and saving/calculating relevant data
     for df in Chunks:
-        tdummy2 = tdummy1
+        df= df.reset_index()
+        tdummy2=tdummy1
         print("Chunk number", count + 1, "/", nChunks)
-        df["samples"] = df.samples.str.split().apply(lambda x: np.array(x, dtype=np.int16))
+        df['samples'] = df.samples.str.split().apply(lambda x: np.array(x, dtype=np.int16))
 
-        # -------------------------------------------------------
-        # This section of code seems to preallocated memory for the 
-        # various lists which will go into the final DataFrame.
-        
-        # QUESTION: why is this run over and over in the loop? To clear the previous chunk's data?
+        #dummy variable used to compare consecutive timestamps. reset to zero when processing a new chunk of the df
+        timestampDummy = 0
+        #Arrays for the data we will put into the df chunks columns.
         samples = np.array([None]*df.shape[0])
         timestamp = np.array([0]*df.shape[0], dtype=np.int64)
         amplitude = np.array([0]*df.shape[0], dtype=np.int16)
@@ -70,57 +84,159 @@ def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=
         valid_event = np.array([True]*df.shape[0], dtype=np.int16)
         ref_point_rise = np.array([0]*df.shape[0], dtype=np.int32)
         ref_point_fall = np.array([0]*df.shape[0], dtype=np.int32)
-        nTimesReset = 0
-        # -------------------------------------------------------
 
-        # -------------------------------------------------------
-        # QUESTION: What are "u"and "k"?
         for i in range(0, df.shape[0]):
-            u = chunksize*count + i
+            #u = chunksize*count + i
             k = round(100*i/df.shape[0])
             sys.stdout.write("\rGenerating dataframe %d%%" % k)
             sys.stdout.flush()
 
-            Baseline = int(round(np.average(df.samples[u][0:20])))
-            peak_index[i] = np.argmin(df.samples[u])
+            Baseline = int(round(np.average(df.samples[i][0:20])))
+            peak_index[i] = np.argmin(df.samples[i])
 
-            #Check that only events above threshold are accepted and that first 20 samples can give a good baseline.
-            if abs(df.samples[u][peak_index[i]] - Baseline) < threshold or (max(df.samples[u][0:20])-min(df.samples[u][0:20])) > 3:
+            #Accept only only events above threshold and for which the first 20 samples can give a good baseline.
+            if (skip_badevents==True) and (abs(df.samples[i][peak_index[i]] - Baseline) < threshold or (max(df.samples[i][0:20])-min(df.samples[i][0:20])) > 3):
                 valid_event[i] = False
                 continue
             else:
-                samples[i] = df["samples"][u] - Baseline
+                #subtract baseline, get cfd refpoint and get pulse amplitude.
+                samples[i] = df['samples'][i] - Baseline
                 ref_point_rise[i], ref_point_fall[i] = cfd(samples=samples[i], frac=frac, peak_index=peak_index[i])
                 amplitude[i] = samples[i][peak_index[i]]
-                timestamp[i] = df["timestamp"][u]
-                if i > 0:
-                    if timestamp[i] < timestamp[i-1]-nTimesReset*2147483647: #QUESTION: What is this number? Is it OK for hardcode?
-                        nTimesReset += 1
-                    timestamp[i] += nTimesReset*2147483647
+                #Correct the timestamp resetting done by Wavedump at t=2**32
+                if ((df['timestamp'][i] + nTimesReset*2147483647) < timestampDummy):
+                    nTimesReset += 1
+                timestamp[i] = df['timestamp'][i] + nTimesReset*2147483647
+                timestampDummy = timestamp[i]
+
+
+# def load_data_simple(path, numEnt, sign='positive'):
+#     """ 
+#         A quick and dirty pulse height generator for wavedump files. 
+#                     !! VERY MEMORY INTENSIVE !!
+
+#         1) Takes 'path' to WaveDump txt file (string) and number of entries 'numEnt' (int), were
+#             numEnt is the number of samples point for each event. The polarity of the signal is signified by
+#             the third entry 'sign' as 'positive' (default) or 'negative'.
+#         2) Finds the largest value for each event (pulse height) and stores these in an array.
+#         3) Saves the array in 'path' as 'ph.pkl'.
+#         NOTE Assumes a file format with NO headers between events. 
+#         ---------------------------------------------------------------------
+#         Nicholai Mauritzson
+#         Edit: 2019-01-17
+#     """
+
+#     print('Loading raw data...')
+#     df = pd.read_csv(path)
+#     print('Load complete...')
+#     ph = [] #Pre allocation of memory for pulse height array.
+#     idx = 0
+#     if sign=='positive':
+#         for evt in range(round(len(df)/numEnt)): #Loop through each event and 
+#             print('Event number:', evt)
+#             ph.append(df[idx:idx+numEnt].max().item())
+#             idx += numEnt
+            
+#     elif sign=='negative':
+#         for evt in range(round(len(df)/numEnt)): #Loop through each event and 
+#             print('Event number:', evt)
+#             ph.append(abs(df[idx:idx+numEnt].min().item()))
+#             idx += numEnt
+
+#     pickle.dump(ph, open("ph.pkl", "wb")) #Save pulse height array as pickle file.
+
+
+# def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False, chunksize=2**18, outpath='data/chunk'):
+#     """
+#         Method needs general documenting.
+
+#         Inputs: What are the inputs and what do they do/represent? Explain each one and any relevant expections which exists.
+
+#         ---------------------------------------------------------------------
+#         Nicholai Mauritzson (nicholai.mauritzson@nuclear.lu.se)
+#         Edit: 2019-01-16
+#         [original code by Rasmus Kjær Høier 2018-2019]
+#     """
+#     t0 = time.time() 
+#     print("Scanning the file to get number of chunks:")
+#     nChunks = int(round(0.5 + sum(1 for row in open(filename, "r"))/chunksize))
+#     t1 = time.time()
+#     print("Scan time: ",t1-t0, "seconds")
+#     print("Will generate ",nChunks," chunks")
+#     Chunks = pd.read_csv(filename, header=None, usecols=[5,7], names=["timestamp", "samples"], chunksize=chunksize)
+    
+#     count = 0 # Counter for numbering chunks for loop add +1 for itterating over 
+#     tdummy1 = t1
+    
+#     # Looping through all chunks and saving/calculating relevant data
+#     for df in Chunks:
+#         tdummy2 = tdummy1
+#         print("Chunk number", count + 1, "/", nChunks)
+#         df["samples"] = df.samples.str.split().apply(lambda x: np.array(x, dtype=np.int16))
+
+#         # -------------------------------------------------------
+#         # This section of code seems to preallocated memory for the 
+#         # various lists which will go into the final DataFrame.
         
-        # -------------------------------------------------------
-        # Section of code for saving all collected and calculated information in
-        # relevant DataFrame columns.
-        df["timestamp"] = timestamp
-        df["samples"] = samples
-        df["valid_event"] = valid_event
-        df["amplitude"] = amplitude
-        df["peak_index"] = peak_index
-        df["ref_point_rise"] = ref_point_rise
-        df["ref_point_fall"] = ref_point_fall
-        df = df.query("valid_event == True").reset_index()
+#         # QUESTION: why is this run over and over in the loop? To clear the previous chunk's data?
+#         samples = np.array([None]*df.shape[0])
+#         timestamp = np.array([0]*df.shape[0], dtype=np.int64)
+#         amplitude = np.array([0]*df.shape[0], dtype=np.int16)
+#         peak_index = np.array([0]*df.shape[0], dtype=np.int16)
+#         valid_event = np.array([True]*df.shape[0], dtype=np.int16)
+#         ref_point_rise = np.array([0]*df.shape[0], dtype=np.int32)
+#         ref_point_fall = np.array([0]*df.shape[0], dtype=np.int32)
+#         nTimesReset = 0
+#         # -------------------------------------------------------
+
+#         # -------------------------------------------------------
+#         # QUESTION: What are "u"and "k"?
+#         for i in range(0, df.shape[0]):
+#             u = chunksize*count + i
+#             k = round(100*i/df.shape[0])
+#             sys.stdout.write("\rGenerating dataframe %d%%" % k)
+#             sys.stdout.flush()
+
+#             Baseline = int(round(np.average(df.samples[u][0:20])))
+#             peak_index[i] = np.argmin(df.samples[u])
+
+#             #Check that only events above threshold are accepted and that first 20 samples can give a good baseline.
+#             if abs(df.samples[u][peak_index[i]] - Baseline) < threshold or (max(df.samples[u][0:20])-min(df.samples[u][0:20])) > 3:
+#                 valid_event[i] = False
+#                 continue
+#             else:
+#                 samples[i] = df["samples"][u] - Baseline
+#                 ref_point_rise[i], ref_point_fall[i] = cfd(samples=samples[i], frac=frac, peak_index=peak_index[i])
+#                 amplitude[i] = samples[i][peak_index[i]]
+#                 timestamp[i] = df["timestamp"][u]
+#                 if i > 0:
+#                     if timestamp[i] < timestamp[i-1]-nTimesReset*2147483647: #QUESTION: What is this number? Is it OK for hardcode?
+#                         nTimesReset += 1
+#                     timestamp[i] += nTimesReset*2147483647
         
-        # -------------------------------------------------------
-        # Section for saving DataFrame
-        df.to_hdf(outpath+".h5", key="key%s"%count)
-        df = df.drop("samples", axis = 1)
-        df.to_hdf(outpath+"cooked.h5", key="key%s"%count)
-        # -------------------------------------------------------
-        tdummy1=time.time()
-        print("chunk", count, "processed in", tdummy1-tdummy2, "seconds"  ) 
-        count += 1  
-        # END OF CHUNK LOOP
-        # -------------------------------------------------------
+#         # -------------------------------------------------------
+#         # Section of code for saving all collected and calculated information in
+#         # relevant DataFrame columns.
+#         df["timestamp"] = timestamp
+#         df["samples"] = samples
+#         df["valid_event"] = valid_event
+#         df["amplitude"] = amplitude
+#         df["peak_index"] = peak_index
+#         df["ref_point_rise"] = ref_point_rise
+#         df["ref_point_fall"] = ref_point_fall
+#         df = df.query("valid_event == True").reset_index()
+        
+#         # -------------------------------------------------------
+#         # Section for saving DataFrame
+#         df.to_hdf(outpath+".h5", key="key%s"%count)
+#         df = df.drop("samples", axis = 1)
+#         df.to_hdf(outpath+"cooked.h5", key="key%s"%count)
+#         # -------------------------------------------------------
+#         tdummy1=time.time()
+#         print("chunk", count, "processed in", tdummy1-tdummy2, "seconds"  ) 
+#         count += 1  
+#         # END OF CHUNK LOOP
+#         # -------------------------------------------------------
 
 
 # def basic_framer(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False):
@@ -377,31 +493,31 @@ def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=
 #     return 0
 
 # def tof_spectrum(ne213, yap, fac=8, tol_left=0, tol_right=120):
-    ymin=0
-    tof_hist = np.histogram([], tol_left+tol_right, range=(tol_left, tol_right))
-    dt=np.array([0]*len(ne213), dtype=np.int32)
-    #tof_hist1 = np.histogram([], tol_left+tol_right, range=(tol_left, tol_right))
-    #tof_hist2 = np.histogram([], tol_left+tol_right, range=(tol_left, tol_right))
+    # ymin=0
+    # tof_hist = np.histogram([], tol_left+tol_right, range=(tol_left, tol_right))
+    # dt=np.array([0]*len(ne213), dtype=np.int32)
+    # #tof_hist1 = np.histogram([], tol_left+tol_right, range=(tol_left, tol_right))
+    # #tof_hist2 = np.histogram([], tol_left+tol_right, range=(tol_left, tol_right))
 
-    #for ne in range(0, len(ne213)):
-    counter=0
-    for row in ne213.itertuples():
-        ne=row[0]
-        counter += 1
-        k = 100*counter/len(ne213)
-        sys.stdout.write("\rGenerating tof spectrum %d%%" % k)
-        sys.stdout.flush()
-        for y in range(ymin, len(yap)):
-            Delta=int(round(((fac*1000*ne213.timestamp[ne]+ne213.refpoint_rise[ne])-(fac*1000*yap.timestamp[y]+yap.refpoint_rise[y]))/1000))
-            if Delta > tol_right:
-                ymin = y
-            if tol_left <= Delta < tol_right:
-                tof_hist[0][tol_left+int(Delta)] += 1
-                if dt[ne] == 0:
-                    dt[ne]=Delta
-                else:
-                    print('Multiple matches!!! taking the first one!')
-            elif Delta < -tol_right:
-                break
-        ne213['dt']=dt
-    return tof_hist
+    # #for ne in range(0, len(ne213)):
+    # counter=0
+    # for row in ne213.itertuples():
+    #     ne=row[0]
+    #     counter += 1
+    #     k = 100*counter/len(ne213)
+    #     sys.stdout.write("\rGenerating tof spectrum %d%%" % k)
+    #     sys.stdout.flush()
+    #     for y in range(ymin, len(yap)):
+    #         Delta=int(round(((fac*1000*ne213.timestamp[ne]+ne213.refpoint_rise[ne])-(fac*1000*yap.timestamp[y]+yap.refpoint_rise[y]))/1000))
+    #         if Delta > tol_right:
+    #             ymin = y
+    #         if tol_left <= Delta < tol_right:
+    #             tof_hist[0][tol_left+int(Delta)] += 1
+    #             if dt[ne] == 0:
+    #                 dt[ne]=Delta
+    #             else:
+    #                 print('Multiple matches!!! taking the first one!')
+    #         elif Delta < -tol_right:
+    #             break
+    #     ne213['dt']=dt
+    # return tof_hist

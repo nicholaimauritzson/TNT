@@ -20,6 +20,7 @@ from math import atan
 # import dask.dataframe as dd
 import dask as dd
 from tqdm import tqdm
+import pickel
 
 def dask_chewer(filename, outpath):
     A = dd.read_csv(filename, header=None, names=['a','b','c','index','e','timestamp','g', 'samples'])

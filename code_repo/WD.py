@@ -121,13 +121,13 @@ def load_data_simple(path, numEnt, sign='positive'):
     idx = 0
     if sign=='positive':
         for evt in tqdm(range(int(round(len(df)/numEnt)))): #Loop through each event and 
-            print('Event number:', evt)
+            # print('Event number:', evt)
             ph.append(df[idx:idx+numEnt].max().item())
             idx += numEnt
             
     elif sign=='negative':
         for evt in tqdm(range(int(round(len(df)/numEnt)))): #Loop through each event and 
-            print('Event number:', evt)
+            # print('Event number:', evt)
             ph.append(abs(df[idx:idx+numEnt].min().item()))
             idx += numEnt
 

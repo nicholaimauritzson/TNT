@@ -99,40 +99,40 @@ def load_data(filename, threshold, frac=0.3, skip_badevents=True, chunksize=2**1
                 timestampDummy = timestamp[i]
 
 
-# def load_data_simple(path, numEnt, sign='positive'):
-#     """ 
-#         A quick and dirty pulse height generator for wavedump files. 
-#                     !! VERY MEMORY INTENSIVE !!
+def load_data_simple(path, numEnt, sign='positive'):
+    """ 
+        A quick and dirty pulse height generator for wavedump files. 
+                    !! VERY MEMORY INTENSIVE !!
 
-#         1) Takes 'path' to WaveDump txt file (string) and number of entries 'numEnt' (int), were
-#             numEnt is the number of samples point for each event. The polarity of the signal is signified by
-#             the third entry 'sign' as 'positive' (default) or 'negative'.
-#         2) Finds the largest value for each event (pulse height) and stores these in an array.
-#         3) Saves the array in 'path' as 'ph.pkl'.
-#         NOTE Assumes a file format with NO headers between events. 
-#         ---------------------------------------------------------------------
-#         Nicholai Mauritzson
-#         Edit: 2019-01-17
-#     """
+        1) Takes 'path' to WaveDump txt file (string) and number of entries 'numEnt' (int), were
+            numEnt is the number of samples point for each event. The polarity of the signal is signified by
+            the third entry 'sign' as 'positive' (default) or 'negative'.
+        2) Finds the largest value for each event (pulse height) and stores these in an array.
+        3) Saves the array in 'path' as 'ph.pkl'.
+        NOTE Assumes a file format with NO headers between events. 
+        ---------------------------------------------------------------------
+        Nicholai Mauritzson
+        Edit: 2019-01-17
+    """
 
-#     print('Loading raw data...')
-#     df = pd.read_csv(path)
-#     print('Load complete...')
-#     ph = [] #Pre allocation of memory for pulse height array.
-#     idx = 0
-#     if sign=='positive':
-#         for evt in range(round(len(df)/numEnt)): #Loop through each event and 
-#             print('Event number:', evt)
-#             ph.append(df[idx:idx+numEnt].max().item())
-#             idx += numEnt
+    print('Loading raw data...')
+    df = pd.read_csv(path)
+    print('Load complete...')
+    ph = [] #Pre allocation of memory for pulse height array.
+    idx = 0
+    if sign=='positive':
+        for evt in range(round(len(df)/numEnt)): #Loop through each event and 
+            print('Event number:', evt)
+            ph.append(df[idx:idx+numEnt].max().item())
+            idx += numEnt
             
-#     elif sign=='negative':
-#         for evt in range(round(len(df)/numEnt)): #Loop through each event and 
-#             print('Event number:', evt)
-#             ph.append(abs(df[idx:idx+numEnt].min().item()))
-#             idx += numEnt
+    elif sign=='negative':
+        for evt in range(round(len(df)/numEnt)): #Loop through each event and 
+            print('Event number:', evt)
+            ph.append(abs(df[idx:idx+numEnt].min().item()))
+            idx += numEnt
 
-#     pickle.dump(ph, open("ph.pkl", "wb")) #Save pulse height array as pickle file.
+    pickle.dump(ph, open("ph.pkl", "wb")) #Save pulse height array as pickle file.
 
 
 # def load_data(filename, threshold, frac=0.3, nlines=0, startline=0, nTimesReset=0, no_skip=False, chunksize=2**18, outpath='data/chunk'):

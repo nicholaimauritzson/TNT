@@ -14,10 +14,11 @@ import csv
 import sys
 from itertools import islice
 import time
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from math import sqrt
 from math import atan
-import dask.dataframe as dd
+# import dask.dataframe as dd
+import dask as dd
 
 def dask_chewer(filename, outpath):
     A = dd.read_csv(filename, header=None, names=['a','b','c','index','e','timestamp','g', 'samples'])

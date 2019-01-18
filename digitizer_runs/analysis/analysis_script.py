@@ -4,15 +4,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import WD as wd
+import pickle
+DigiMethods as dm
 
-df = pd.read_csv("/media/gheed/Seagate_Expansion_Drive1/Data/TNT/digitizer/first_tests/wave0_4.txt")
-h_df = []
-space = 19005
-idx = 0
-for evt in range(round(len(df)/space)):
-    h_df.append(df[idx:idx+space].max().item())
-    idx += space
 
-plt.hist(h_df, bins=100)
-plt.show()
+wd.load_data_simple('/media/gheed/Seagate_Expansion_Drive1/Data/TNT/digitizer/digitizer_mca_comparison', 19005)
+
+# plt.hist(h_df, bins=100)
+# plt.show()
     

@@ -26,7 +26,6 @@ def dask_chewer(filename, outpath):
     A.compute()
     A.to_hdf(outpath, 'a')
 
-
 def load_data(filename, threshold, frac=0.3, skip_badevents=True, chunksize=2**16, outpath='data/chunk', use_dask=False, daskoutpath='data/daskframe.h5'):
     """
         load_data()\nArguments and default inputs: 
@@ -98,7 +97,6 @@ def load_data(filename, threshold, frac=0.3, skip_badevents=True, chunksize=2**1
                 timestamp[i] = df['timestamp'][i] + nTimesReset*2147483647
                 timestampDummy = timestamp[i]
 
-
 def load_data_simple(path, numEnt, sign='positive'):
     """ 
         A quick and dirty pulse height generator for wavedump files. 
@@ -121,13 +119,13 @@ def load_data_simple(path, numEnt, sign='positive'):
     ph = [] #Pre allocation of memory for pulse height array.
     idx = 0
     if sign=='positive':
-        for evt in range(round(len(df)/numEnt)): #Loop through each event and 
+        for evt in range(int(round(len(df)/numEnt))): #Loop through each event and 
             print('Event number:', evt)
             ph.append(df[idx:idx+numEnt].max().item())
             idx += numEnt
             
     elif sign=='negative':
-        for evt in range(round(len(df)/numEnt)): #Loop through each event and 
+        for evt in range(int(round(len(df)/numEnt))): #Loop through each event and 
             print('Event number:', evt)
             ph.append(abs(df[idx:idx+numEnt].min().item()))
             idx += numEnt

@@ -19,6 +19,7 @@ from math import sqrt
 from math import atan
 # import dask.dataframe as dd
 import dask as dd
+from tqdm import tqdm
 
 def dask_chewer(filename, outpath):
     A = dd.read_csv(filename, header=None, names=['a','b','c','index','e','timestamp','g', 'samples'])
@@ -119,13 +120,13 @@ def load_data_simple(path, numEnt, sign='positive'):
     ph = [] #Pre allocation of memory for pulse height array.
     idx = 0
     if sign=='positive':
-        for evt in range(int(round(len(df)/numEnt))): #Loop through each event and 
+        for evt in tqdm(range(int(round(len(df)/numEnt)))): #Loop through each event and 
             print('Event number:', evt)
             ph.append(df[idx:idx+numEnt].max().item())
             idx += numEnt
             
     elif sign=='negative':
-        for evt in range(int(round(len(df)/numEnt))): #Loop through each event and 
+        for evt in tqdm(range(int(round(len(df)/numEnt)))): #Loop through each event and 
             print('Event number:', evt)
             ph.append(abs(df[idx:idx+numEnt].min().item()))
             idx += numEnt

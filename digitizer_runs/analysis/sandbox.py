@@ -10,7 +10,7 @@ import re
 from tqdm import tqdm
 
 
-textfile = open("/media/gheed/Seagate_Expansion_Drive1/Data/TNT/digitizer/first_tests/wave0_2.txt") #open txt file
+textfile = open("wave0_1.txt") #open txt file
 df = pd.DataFrame({"evtno": [], "ts": [], "sample": []}) #Create pandas DataFrame
 
 pattern = [re.compile("Record"), re.compile("Event"), re.compile("Trigger"), re.compile("DC")]
@@ -60,4 +60,4 @@ with textfile as f: #Go through text file line by line
 df['evtno'] = evtno_list 
 df['ts'] = ts_list 
 df['sample'] = sample_list 
-pickle.dump(ph, open("df1.pkl", "wb")) #save ph data to file
+pickle.dump(df, open("df1.pkl", "wb")) #save ph data to file

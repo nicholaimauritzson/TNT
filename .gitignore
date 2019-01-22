@@ -53,5 +53,5 @@ Thumbs.db
 # Folders #
 #######################
 code_repo/Rasmus_TOF/*
-code_repo/Rasmus_TOF
+code_repo/Rasmus_TOF*
 code_repo/Rasmus_TOF/tof.py

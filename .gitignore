@@ -28,6 +28,8 @@
 *.rar
 *.tar
 *.zip
+*.h5
+*.parquet
 
 # Logs and databases #
 ######################
@@ -45,3 +47,7 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Folders #
+#######################
+code_repo/Rasmus_TOF

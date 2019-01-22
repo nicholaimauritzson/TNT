@@ -37,6 +37,8 @@
 *.sql
 *.sqlite
 *.pyc
+*.cpython-36
+*.cpython-36.pyc
 
 # OS generated files #
 ######################

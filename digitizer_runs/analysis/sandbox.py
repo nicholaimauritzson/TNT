@@ -1,17 +1,25 @@
 import sys
 sys.path.insert(0, "/home/gheed/Documents/projects/TNT/code_repo") #Import my own libraries
+sys.path.insert(0, "/home/gheed/Documents/projects/TNT/code_repo/Rasmus_TOF") #Import my own libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import WD as wd
 import pickle
+import tof as tof
+import dask.dataframe as dd
 import DigiMethods as dm
 import re
 from tqdm import tqdm
 
 
-df = pd.read_parquet('/media/gheed/Seagate_Expansion_Drive1/Data/rasmus_data/test_ch3/part.0.parquet')
+#IMPORTING PARQUET FILES
+
+# df = pd.read_parquet('/media/gheed/Seagate_Expansion_Drive1/Data/rasmus_data/test_ch3/part.0.parquet')
 # df.head()
+
+df = dd.read_parquet('/media/gheed/Seagate_Expansion_Drive1/Data/rasmus_data/test_ch3/part.0.parquet')
+# tof.dask_chewer('/media/gheed/Seagate_Expansion_Drive1/Data/rasmus_data/test_ch3.txt', '/media/gheed/Seagate_Expansion_Drive1/Data/rasmus_data/', 10, 99999)
 
 
 

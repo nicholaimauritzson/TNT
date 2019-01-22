@@ -39,6 +39,7 @@
 *.pyc
 *.cpython-36
 *.cpython-36.pyc
+*.swp
 
 # OS generated files #
 ######################
@@ -52,6 +53,4 @@ Thumbs.db
 
 # Folders #
 #######################
-/code_repo/Rasmus_TOF/*
-#/code_repo/Rasmus_TOF*
-#/code_repo/Rasmus_TOF/tof.py
+code_repo/Rasmus_TOF/*

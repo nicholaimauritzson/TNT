@@ -3,6 +3,8 @@
 *.png
 *.pdf
 *.jpg
+*.JPG
+*.JPEG
 *.jpeg
 *.gif
 *.svg
@@ -51,6 +53,19 @@
 ehthumbs.db
 Thumbs.db
 
+# Text and calc documents #
+###########################
+*.cxx
+*.ps
+*.xls
+*.doc
+
 # Folders #
 #######################
-code_repo/Rasmus_TOF/*
+code_repo/tof/*
+sjogren_project/*
+design/*
+orders/*
+reference_material/*
+reports/*
+thermal_neutron_lab/*

@@ -26,6 +26,24 @@ df = dd.read_parquet('/media/gheed/Seagate_Expansion_Drive1/Data/rasmus_data/tes
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # textfile = open("wave0_1.txt") #open txt file
 # df = pd.DataFrame({"evtno": [], "ts": [], "sample": []}) #Create pandas DataFrame
 # pattern = [re.compile("Record"), re.compile("Event"), re.compile("Trigger"), re.compile("DC")]

@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from tqdm import tqdm #Library for progress bars
 
 def simpleIntegrate(df, col=None, start=0, stop=None): #WORK IN PROGRESS
     """
@@ -160,16 +161,19 @@ def comptonMax(Ef):
     return 2*Ef**2/(0.5109989+2*Ef)
 
 
-def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
+def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=None):
     """
     Method is designed to fit and return the edge positions and maximum electron recoil energy of a Compton distribution.
     ---------------------------------------------------------------------
     Inputs: 
-    - 'data' : A pandas data frame
-    - 'col' : The name of the column containg data to be fitted
-    - 'min' : The minimum x-value (ADC) for fit
-    - 'max' : The maximum x-value (ADC) for fit
-    - 'Ef' : The photon energy in MeV
+    - 'data'.....A pandas data frame
+    - 'col'......The name of the column containg data to be fitted
+    - 'min'......The minimum x-value (ADC) for fit
+    - 'max'......The maximum x-value (ADC) for fit
+    - 'Ef'.......The photon energy in MeV
+    - 'w1'........Weight for 'data' to be used in plt.hist(). Length of 'w1' needs to be len('data'). Will only use if != None
+    - 'w2'........Weight for 'BG' to be used in plt.hist(). Length of 'w2' needs to be len('BG'). Will only use if != None
+    - 'BG'........Background data to be subtraced prior to fitting. Will only use if != None
     - 'fit_lim' : Boundary parameters for scipy.optimize.curve_fit method (Guassian):
                   Format: fit_lim = [[const_min, mean_min, sigma_min],[const_max, mean_max, sigma_max]] 
 
@@ -188,9 +192,14 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     """
 
     #1)____________MAKE HISTOGRAM AND EXTRACT X,Y VALUES___________
-    N = np.histogram(data[col], range=[min, max], bins=(max-min)) #Create histogram and save x,y data.
-    x = N[1][:-1]   #Set bin positions as x values
-    y = N[0]        #Set bin heights as y values
+    N = np.histogram(data[col], range=[min, max], bins=(max-min), weights = w1) #Create weighted histogram of 'data' and save x,y data.
+    if w1 is not None and w2 is not None: #Check if background should be subtracted.
+        NBG = np.histogram(BG[col], range=[min, max], bins=(max-min), weights = w2) #Create weighted histogram of 'BG' and save x,y data.
+        x = N[1][:-1]   #Set bin positions as x values
+        y = N[0]-NBG[0] #Set bin heights as y values
+    else:
+        x = N[1][:-1]   #Set bin positions as x values
+        y = N[0]        #Set bin heights as y values
     meanTEMP = np.max(y)#sum(x * y) / sum(y)  #Calcaulate the mean value of distibution. Used as first quess for Gaussian fit.
     sigmaTEMP = np.sqrt(sum(y * (x - meanTEMP)**2) / sum(y)) #Calculate stdev of distribution. Used as first geuss for Gaussian fit.
 
@@ -219,7 +228,7 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
             break
     else:
         p = np.nan
-        print('FAILURE TO LOCATE CE @ 89%%...')
+        print('!!! FAILURE TO LOCATE CE @ 89%%... !!!')
     
     #3b)___________FINDING COMPTON EDGE @ 50% OF MAX_______________Flynn Method
     for i in tqdm(np.arange(min, max, 0.0001), desc='Finding CE @ 50% of max'): #Loop for finding 50% of maximum with 4 decimal points
@@ -228,7 +237,7 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
             break
     else:
         p2 = np.nan
-        print('FAILURE TO LOCATE CE @ 50%...')
+        print('!!! FAILURE TO LOCATE CE @ 50%... !!!')
 
     #4)____________MAXIMUM ELECTRON RECOIL ENERGY__________________
     E_recoil_max = comptonMax(Ef) #Calculate maximum electron recoil energy
@@ -237,12 +246,15 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     print('>>>> comptonEdgeFit() returned <<<<')
     print('-> 89%% Compton edge found at ADC value: %.4f' % p) #Printing compton edge value (ADC) to console
     print('-> 50%% Compton edge found at ADC value: %.4f' % p2) #Printing compton edge value (ADC) to console
+    print('-> Photon energy: %.4f MeV' % Ef)
     print('-> Maximum electron recoil energy: %.4f MeV' % E_recoil_max)
     print('______________________________________________________________________')
 
     #5)____________PLOTTING________________________________________ 
-    x_long = np.arange(min, max, 0.0001) #Increse plotting points for Gaussian plot by 10000
-    plt.hist(data.qdc_det0, range=(min-200, max+200), bins=(max-min+400), label='data') #Plot histogram of input data
+    x_long = np.arange(min, max, 0.0001) #Increse plotting points for Gaussian plot by x10000
+    Nfin = np.histogram(data.qdc_det0, range=(min-300, max+300), bins=(max-min+600), weights=w1) #Recreated baground subtracted data with a wider range for plotting.
+    NfinBG = np.histogram(BG.qdc_det0, range=(min-300, max+300), bins=(max-min+600), weights=w2) #Recreated baground subtracted data with a wider range for plotting.
+    plt.plot(Nfin[1][:-1], (Nfin[0]-NfinBG[0]), label='data') #Plot histogram of bakgroundsubtracted input data
     plt.plot(x_long, gaussFunc(x_long, const, mean, sigma), color='r', linewidth=3, label='Gaussian fit') #Plot Gaussian fit
     plt.plot(p, gaussFunc(p, const, mean, sigma), color='black', marker='o', markersize=10, label='Compton edge (89%)') #Mark 89% of maximum point
     plt.plot(p2, gaussFunc(p2, const, mean, sigma), color='green', marker='o', markersize=10, label='Compton edge (50%)') #Mark 50% of maximum point

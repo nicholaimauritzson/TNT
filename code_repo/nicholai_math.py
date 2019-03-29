@@ -18,6 +18,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import nicholai_utility as nu
+from uncertainties import ufloat
+from uncertainties.umath import * #Get all methods for library
 from math import isnan
 from tqdm import tqdm #Library for progress bars
 
@@ -179,17 +181,16 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
 
     1) Creates a histogram, saves x,y data.
     2) Fits the data and prints to console optimal fit parameters.
-    3a) Finds the compton edge @ 89% of compton edge maximum (Knox method).
-    3b) Finds the compton edge @ 50% of compton edge maximum (Flynn method).
+    3) Tries to find the Compton edge @ 89% and 50% of Compton edge maximum (Knox and Flynn methods).
     4) Calculates the maximum electron recoil energy based on 'Ef'.
-    5) Plots histogram of original data, Gaussian fit and markers for 89% and 50% of maximum.
+    5) Calculated the error of Compton edge for @ 89% and 50% using error propagation.
+    6) Plots histogram of original data, Gaussian fit and markers for 89% and 50% of maximum.
 
-    Returns:
     Method returns array containing the 89% of maximum [ADC] 'p', 
     50% of maximum [ADC] 'p2' and the calculated maximum electron recoil energy in MeV 'E_recoil_max'.
     ---------------------------------------------------------------------
     Nicholai Mauritzson
-    Edit: 2019-03-28
+    Edit: 2019-03-29
     """
 
     #1)____________MAKE HISTOGRAM AND EXTRACT X,Y VALUES___________
@@ -203,6 +204,7 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
         y = N[0]        #Set bin heights as y values
     meanTEMP = np.max(y)#sum(x * y) / sum(y)  #Calcaulate the mean value of distibution. Used as first quess for Gaussian fit.
     sigmaTEMP = np.sqrt(sum(y * (x - meanTEMP)**2) / sum(y)) #Calculate stdev of distribution. Used as first geuss for Gaussian fit.
+
 
     #2)____________FITS HISTOGRAM DATA WITH GAUSSIAN_______________
     if fit_lim != None: #Check if boundary limits are enforced for Gaussian fit
@@ -222,7 +224,8 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
     print('______________________________________________________________________')
     print() #Create vertical space on terminal
 
-    #3a)___________FINDING COMPTON EDGE @ 89% OF MAX_______________Knox Method 
+
+    #3)___________FINDING COMPTON EDGE @ 89% OF MAX________________Knox Method 
     print('______________________________________________________________________')
     print('>>>> Finding compton edges... <<<<')  
     for i in tqdm(np.arange(min, max, 0.001), desc='Finding CE @ 89% of max'): #Loop for finding 89% of maximum with 4 decimal points
@@ -234,8 +237,8 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
         p = np.nan
         y = np.nan
         print('!!! FAILURE TO LOCATE CE @ 89%%... !!!')
-    
-    #3b)___________FINDING COMPTON EDGE @ 50% OF MAX_______________Flynn Method
+
+    #3)___________FINDING COMPTON EDGE @ 50% OF MAX_______________Flynn Method
     for i in tqdm(np.arange(min, max, 0.001), desc='Finding CE @ 50% of max'): #Loop for finding 50% of maximum with 4 decimal points
         if gaussFunc(i, const, mean, sigma)<=0.5*const:
             p2 = i #Saving compton edge value
@@ -248,25 +251,24 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
     print('______________________________________________________________________')
     print()#Create vertical empty space in terminal
 
+
     #4)____________MAXIMUM ELECTRON RECOIL ENERGY__________________
     E_recoil_max = comptonMax(Ef) #Calculate maximum electron recoil energy
 
-    #______________ERROR PROPAGATION CALCULATION__________________
-    
+
+    #5)____________ERROR PROPAGATION CALCULATION___________________
     if isnan(y)==False:
         y_err = errorPropGauss(y, p, const, fitError[0], mean, fitError[1], sigma, fitError[2])
         p_err = [0, 0]
         compare = [y-y_err, y+y_err]
         flag1, flag2 = 0, 0
-        for i in tqdm(np.arange(min, max, 0.001), desc='Locating errors for CE @ 89%'): #Loop for finding 89% of maximum with 4 decimal points
+        for i in tqdm(np.arange(min, max, 0.001), desc='Calculating errors for CE @ 89%'): #Loop for finding 89% of maximum with 4 decimal points
             val = gaussFunc(i, const, mean, sigma)
             if val <= compare[0] and flag1 == 0:
                 p_err[0] = i #Saving compton edge value
-                print(p_err[0])
                 flag1 = 1
             if val <= compare[1] and flag2 == 0:
                 p_err[1] = i #Saving compton edge value
-                print(p_err[1])
                 flag2 = 1
         
     if isnan(y2)==False:
@@ -274,7 +276,7 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
         p2_err = [0, 0]
         compare2 = [y2-y2_err, y2+y2_err]
         flag1, flag2 = 0, 0
-        for i in tqdm(np.arange(min, max, 0.001), desc='Locating errors for CE @ 89%'): #Loop for finding 89% of maximum with 4 decimal points
+        for i in tqdm(np.arange(min, max, 0.001), desc='Caclulating errors for CE @ 89%'): #Loop for finding 89% of maximum with 4 decimal points
             val = gaussFunc(i, const, mean, sigma)
             if val <= compare[0] and flag1 == 0:
                 p_err[0] = i #Saving compton edge value
@@ -284,30 +286,31 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
                 flag2 = 1
 
     #Printing results to console
-    print('______________________________________________________________________')
-    print('>>>> Results <<<<')
-    if isnan(y)==False: #If 89% Compton edge was found, print the error in G(x) (y-value)
-        print('-> Error in G(x) 89%%: +/-%.4f'%y_err)
-        print('-> 89%% Compton edge found at ADC value: %.4f (+/-%.4f)'  % (p, np.abs(p_err[0]-p_err[1]))) #Printing compton edge value (ADC) to console
-    if isnan(y2)==False: #If 50% Compton edge was found, print the error in G(x) (y-value)
-        print('-> Error in G(x) 50%%: +/-%.4f'%y2_err)
-        print('-> 50%% Compton edge found at ADC value: %.4f (+/-%.4f)'  % (p2, np.abs(p2_err[0]-p2_err[1]))) #Printing compton edge value (ADC) to console
-    print('-> Photon energy: %.4f MeV' % Ef)
-    print('-> Maximum electron recoil energy: %.4f MeV' % E_recoil_max)
-    print('______________________________________________________________________')
-    print()#Create vertical empty space in terminal
 
-    #5)____________PLOTTING________________________________________ 
+
+    #6)____________PLOTTING AND PRINTING TO CONSOLE________________________ 
     x_long = np.arange(min, max, 0.01) #Increse plotting points for Gaussian plot by x100
     Nfin = np.histogram(data.qdc_det0, range=(min-300, max+300), bins=(max-min+600), weights=w1) #Recreated baground subtracted data with a wider range for plotting.
     NfinBG = np.histogram(BG.qdc_det0, range=(min-300, max+300), bins=(max-min+600), weights=w2) #Recreated baground subtracted data with a wider range for plotting.
     plt.plot(Nfin[1][:-1], (Nfin[0]-NfinBG[0]), label='data') #Plot histogram of bakgroundsubtracted input data
     plt.plot(x_long, gaussFunc(x_long, const, mean, sigma), color='r', linewidth=3, label='Gaussian fit') #Plot Gaussian fit
-    plt.plot(p, gaussFunc(p, const, mean, sigma), color='black', marker='o', markersize=10, label='Compton edge (89%)') #Mark 89% of maximum point
-    plt.plot(p2, gaussFunc(p2, const, mean, sigma), color='green', marker='o', markersize=10, label='Compton edge (50%)') #Mark 50% of maximum point
+    print('______________________________________________________________________')
+    print('>>>> Results <<<<')
+    if isnan(y)==False: #If 89% Compton edge was found, print the error in G(x) (y-value)
+        print('-> 89%%, G(x) = %.4f +/- %.4f'%(y, y_err))
+        print('-> 89%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p, np.abs(p-p_err[0]),np.abs(p_err[1]-p))) #Printing compton edge value (ADC) to console
+        plt.plot(p, y, color='black', marker='o', markersize=10, label='Compton edge (89%)') #Mark 89% of maximum point
+    if isnan(y2)==False: #If 50% Compton edge was found, print the error in G(x) (y-value)
+        print('-> 50%%, G(x) = %.4f +/- %.4f'%(y2, y2_err))
+        print('-> 50%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p2, np.abs(p2-p2_err[0]),np.abs(p2_err[1]-p2))) #Printing compton edge value (ADC) to console
+        plt.plot(p2, y2, color='green', marker='o', markersize=10, label='Compton edge (50%)') #Mark 50% of maximum point
+    print('-> Photon energy: %.4f MeV' % Ef)
+    print('-> Maximum electron recoil energy: %.4f MeV' % E_recoil_max)
+    print('______________________________________________________________________')
+    print()#Create vertical empty space in terminal
     plt.legend()
-    plt.show()
-
+    plt.show() #Show plots
+    
     return p, p2, E_recoil_max
 
 def errorPropMulti(R, variables, errors):

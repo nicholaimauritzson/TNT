@@ -150,7 +150,6 @@ def ratio(df1, df2, col):
             ratio.append(df1[str(col)][i] / df2[str(col)][i])
     return ratio
 
-
 def comptonMax(Ef):
     """
     Takes photon energy input and returns the maximum electron recoil energy
@@ -159,7 +158,6 @@ def comptonMax(Ef):
     Edit: 2019-03-26
     """
     return 2*Ef**2/(0.5109989+2*Ef)
-
 
 def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=None):
     """
@@ -262,3 +260,77 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
     plt.show()
 
     return p, p2, E_recoil_max
+
+def errorPropMulti(R, variables, errors):
+    """
+    info
+    """
+    sum = 0
+    for i in range(len(variables)):
+        sum += (errors[i]/variables[i])**2
+    return R*np.sqrt(sum)
+
+def errorPropAdd(errors):
+    """
+    info
+    """
+    sum = 0
+    for i in range(len(errors)):
+        sum += errors[i]**2
+    return np.sqrt(sum)
+
+def errorPropPower(R, variable, error, exponent):
+    """
+    Method for calculating error of R through error propagation with an exponent.
+    Ex: R(x)=x^n, were x is the variable and n is a fixed number.
+    Input:
+    - 'R'.........This is walculated quantity.
+    - 'variable'..This is the variable with an uncertainty.
+    - 'error'.....This is the uncertainty of the variable
+    Return:
+    - Error of R.
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-03-28
+    """
+    return np.abs(R)*np.abs(exponent)*error/np.abs(variable)
+
+def errorPropExp(R, exp_error):
+    """
+    info
+    """
+    return R*exp_error
+
+def errorPropGauss(R, x, const, const_err, mean, mean_err, sigma, sigma_err):
+    """
+    info
+    """
+    alpha = (x-mean)/(sigma)
+    alpha_err = alpha*np.sqrt( (mean_err/mean)**2 + (sigma_err/sigma)**2 )
+    alpha_err2 = errorPropMulti(alpha, (mean, sigma), (mean_err, sigma_err))
+    
+    print('----------------')
+    print(alpha_err)
+    print(alpha_err2)
+
+    beta = 0.5*alpha**2
+    beta_err = 2*beta*alpha_err/alpha
+    beta_err2 = errorPropPower(beta, alpha, alpha_err, 2)
+    print(beta_err)
+    print(beta_err2)
+
+    gamma = np.exp(-beta)
+    gamma_err = gamma*beta_err
+    gamma_err2 = errorPropExp(gamma, beta_err)
+    print(gamma_err)
+    print(gamma_err2)
+
+    delta = const*gamma
+    delta_err = delta*np.sqrt( (const_err/const)**2 + (gamma_err/gamma)**2 )
+    delta_err2 = errorPropMulti(delta, (const, gamma), (const_err, gamma_err)) 
+    print(delta_err)
+    print(delta_err2)
+
+    print('----------------')
+
+    return delta_err

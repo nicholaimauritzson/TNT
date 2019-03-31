@@ -315,7 +315,17 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
 
 def errorPropMulti(R, variables, errors):
     """
-    info
+    Method for calculating error of R through error propagation with mutiplication and/or division.
+    Ex: R(x)=a*b/c, were a,b and c are the variables.
+    Input:
+    - 'R'..........This is the product.
+    - 'variables'..This are the variables which has an uncertainty as list = (a, b, c).
+    - 'errors'.....This is the uncertainties of the variables as list = (err_a, err_b, err_c).
+    Return:
+    - Error of R.
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-03-31
     """
     sum = 0
     for i in range(len(variables)):
@@ -324,7 +334,15 @@ def errorPropMulti(R, variables, errors):
 
 def errorPropAdd(errors):
     """
-    info
+    Method for calculating error of R through error propagation with addition and/or subtraction.
+    Ex: R(x)=a+b-c, were a,b and c are the variables.
+    Input:
+    - 'errors'.....This is the uncertainties of the variables as list = (err_a, err_b, err_c).
+    Return:
+    - Error of R.
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-03-31
     """
     sum = 0
     for i in range(len(errors)):
@@ -336,8 +354,8 @@ def errorPropPower(R, variable, error, exponent):
     Method for calculating error of R through error propagation with an exponent.
     Ex: R(x)=x^n, were x is the variable and n is a fixed number.
     Input:
-    - 'R'.........This is walculated quantity.
-    - 'variable'..This is the variable with an uncertainty.
+    - 'R'.........This is calculated quantity.
+    - 'variable'..This is the variable which has an uncertainty.
     - 'error'.....This is the uncertainty of the variable
     Return:
     - Error of R.
@@ -349,25 +367,45 @@ def errorPropPower(R, variable, error, exponent):
 
 def errorPropExp(R, exp_error):
     """
-    info
+    Method calculates and returns the error of f(x), were f(x)=e^n
+    - R...........This is the value of f(x)
+    - exp_error...This is the error in the exponent of the function.
+
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-03-30 
     """
     return R*exp_error
 
 def errorPropGauss(R, x, const, const_err, mean, mean_err, sigma, sigma_err):
     """
-    info
-    """
-    alpha = (x-mean)/(sigma)
-    alpha_err = alpha*np.sqrt( (mean_err/mean)**2 + (sigma_err/sigma)**2 )
+    Method calculates and returns the error in G(x), were G(x) is a Gaussian function. This is done through error propagation.
+    - R...........This is the answer to G(x).
+    - x...........This is the x-value.
+    - const.......This is the constant of the function.
+    - const_err...This is the error for the contant.
+    - mean........This is the mean value of the distrubution.
+    - mean_err....This is the error in the mean value.
+    - sigma.......This is the standard deviation of the distrubution.
+    - sigma_err...This is the error in the standard diviation.
 
-    beta = 0.5*alpha**2
-    beta_err = 2*beta*alpha_err/alpha
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-03-30    
+    """
+    zero = (x-mean)
+    zero_err = mean_err
+
+    alpha = (zero)/(sigma)
+    alpha_err = errorPropMulti(alpha, (zero, sigma), (zero_err, sigma_err)) 
+
+    beta = 0.5*(alpha**2)
+    beta_err = errorPropPower(beta, alpha, alpha_err, 2)
 
     gamma = np.exp(-beta)
-    gamma_err = gamma*beta_err
+    gamma_err = errorPropExp(gamma, beta_err)
 
     delta = const*gamma
-    delta_err = delta*np.sqrt( (const_err/const)**2 + (gamma_err/gamma)**2 )
-    
+    delta_err = errorPropMulti(delta, (const, gamma), (const_err, gamma_err))
 
     return delta_err

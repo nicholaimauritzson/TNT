@@ -18,7 +18,6 @@ from scipy.optimize import curve_fit
 # By Nicholai Mauritzson 
 # ------------------------------------------------------------------------------
 
-
 # ------------------------------------------------------------------------------
 # Load and save data as HDF5 file.
 # ------------------------------------------------------------------------------
@@ -164,16 +163,19 @@ Ef = .511
 # Ef = .6615
 
 ##_____Na-22 (1.275 keV)Boundary condisions______
-# const_min = -np.inf
-# mean_min  = -np.inf
-# sigma_min = -np.inf
-# const_max = np.inf
-# mean_max  = np.inf
-# sigma_max = np.inf
-# fit_lim = [[const_min, mean_min, sigma_min],[const_max, mean_max, sigma_max]]
+const_min = -np.inf
+mean_min  = -np.inf
+sigma_min = -np.inf
+const_max = np.inf
+mean_max  = np.inf
+sigma_max = np.inf
+fit_lim = [[const_min, mean_min, sigma_min],[const_max, mean_max, sigma_max]]
+min = 500
+max = 1500
+Ef = 1.275
 
-# col = "qdc_det0"
-# nm.comptonEdgeFit(Na22_data, col, min, max, Ef, Na22_w, BG_w, BG_data, fit_lim)
+col = "qdc_det0"
+nm.comptonEdgeFit(Na22_data, col, min, max, Ef, Na22_w, BG_w, BG_data, fit_lim)
 
 
 #ERROR PROPAGATION TEST
@@ -185,20 +187,20 @@ Ef = .511
 
 
 
-from uncertainties import ufloat
-from uncertainties.umath import * #Get all methods for library
+# from uncertainties import ufloat
+# from uncertainties.umath import * #Get all methods for library
 
-x=491.720 #My error: 5.5350
+# x=491.720 #My error: 5.5350
 # #MY Y values and error: 2.8118 +/- 0.0367 (Na22 @ 89%)
-uconst =ufloat(3.1593, 0.0250)
-umean = ufloat(442.1512, 2.8206)
-usigma = ufloat(102.1599, 4.5066)
+# uconst =ufloat(3.1593, 0.0250)
+# umean = ufloat(442.1512, 2.8206)
+# usigma = ufloat(102.1599, 4.5066)
 
-const = 3.1593
-const_err = .025
-mean = 442.1512
-mean_err = 2.8206
-sigma = 102.1599
-sigma_err = 4.5066
-Y = nm.gaussFunc(x, const, mean, sigma)
-print(nm.errorPropGauss(Y, x, const, const_err, mean, mean_err, sigma, sigma_err))
+# const = 3.1593
+# const_err = .025
+# mean = 442.1512
+# mean_err = 2.8206
+# sigma = 102.1599
+# sigma_err = 4.5066
+# Y = nm.gaussFunc(x, const, mean, sigma)
+# print(nm.errorPropGauss(Y, x, const, const_err, mean, mean_err, sigma, sigma_err))

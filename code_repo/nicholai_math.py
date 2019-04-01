@@ -262,7 +262,7 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
         p_err = [0, 0]
         compare = [y-y_err, y+y_err]
         flag1, flag2 = 0, 0
-        for i in tqdm(np.arange(min, max, 0.001), desc='Calculating errors for CE @ 89%'): #Loop for finding 89% of maximum with 4 decimal points
+        for i in tqdm(np.arange(min, max, 0.001), desc='Calculating errors for CE @ 89%'): #Loop for finding 89% of maximum with 3 decimal points
             val = gaussFunc(i, const, mean, sigma)
             if val <= compare[0] and flag1 == 0:
                 p_err[0] = i #Saving compton edge value
@@ -276,7 +276,7 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
         p2_err = [0, 0]
         compare2 = [y2-y2_err, y2+y2_err]
         flag1, flag2 = 0, 0
-        for i in tqdm(np.arange(min, max, 0.001), desc='Caclulating errors for CE @ 89%'): #Loop for finding 89% of maximum with 4 decimal points
+        for i in tqdm(np.arange(min, max, 0.001), desc='Caclulating errors for CE @ 50%'): #Loop for finding 50% of maximum with 3 decimal points
             val = gaussFunc(i, const, mean, sigma)
             if val <= compare[0] and flag1 == 0:
                 p_err[0] = i #Saving compton edge value

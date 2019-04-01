@@ -12,7 +12,14 @@
 #           nicholai.mauritzson@nuclear.lu.se
 # ----------------------------------------------------------
 
-def printFormatting(title, descriptions, values, errors=None, unit=('Units missing!'):
+import pandas as pd
+import numpy as np
+import sys
+from tqdm import tqdm #Library for progress bars
+sys.path.insert(0, "/home/gheed/Documents/projects/TNT/code_repo") #Import my own libraries
+from pyTagAnalysis import load_data
+
+def printFormatting(title, descriptions, values, errors=None, unit=('Units missing!')):
     """
     Method which prints information to console in a nice way.
     - 'title'..........String containing desired title of the print-out.
@@ -45,3 +52,18 @@ def printFormatting(title, descriptions, values, errors=None, unit=('Units missi
             
     print('______________________________________________________________________')
     print()#Create vertical empty space in terminal
+
+def convertCookedData(load_path, save_path):
+    """
+    Method takes "cooked" root file as input ('load_path'), converts it to pandas data frame and saves it to 'save_path' as hdf5 file.
+    
+    - 'load_path'....List of paths to each data file (strings). Takes these, converts them and saves them all as one file.
+    - 'save_path'....String of path to where converted data shall be saved.
+    """
+
+    frames = []
+    for i in tqdm(range(len(load_path))):
+        df_temp = load_data(load_path[i])
+        frames.append(df_temp)
+    df = pd.concat(frames)
+    df.to_hdf(save_path, key="w")

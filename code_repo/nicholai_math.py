@@ -279,10 +279,10 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
         for i in tqdm(np.arange(min, max, 0.001), desc='Caclulating errors for CE @ 50%'): #Loop for finding 50% of maximum with 3 decimal points
             val = gaussFunc(i, const, mean, sigma)
             if val <= compare2[0] and flag1 == 0:
-                p_err2[0] = i #Saving compton edge value
+                p2_err[0] = i #Saving compton edge value
                 flag1 = 1
             if val <= compare2[1] and flag2 == 0:
-                p_err2[1] = i #Saving compton edge value
+                p2_err[1] = i #Saving compton edge value
                 flag2 = 1
 
     #Printing results to console

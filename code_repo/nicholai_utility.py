@@ -60,10 +60,16 @@ def convertCookedData(load_path, save_path):
     - 'load_path'....List of paths to each data file (strings). Takes these, converts them and saves them all as one file.
     - 'save_path'....String of path to where converted data shall be saved.
     """
+    if type(load_path) == tuple:
+        frames = []
+        for i in tqdm(range(len(load_path))):
+            df_temp = load_data(load_path[i])
+            frames.append(df_temp)
+        df = pd.concat(frames)
+    elif type(load_path) == str:
+        df = load_data(load_path)
+    else:
+        print('ERROR: load_path needs to be string or list of strings')
+        return 0
 
-    frames = []
-    for i in tqdm(range(len(load_path))):
-        df_temp = load_data(load_path[i])
-        frames.append(df_temp)
-    df = pd.concat(frames)
     df.to_hdf(save_path, key="w")

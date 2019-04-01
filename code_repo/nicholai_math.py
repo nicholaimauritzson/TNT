@@ -298,16 +298,18 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
     print('>>>> Results <<<<')
     if isnan(y)==False: #If 89% Compton edge was found, print the error in G(x) (y-value)
         print('-> 89%%, G(x) = %.4f +/- %.4f'%(y, y_err))
-        print('-> 89%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p, np.abs(p-p_err[0]),np.abs(p_err[1]-p))) #Printing compton edge value (ADC) to console
+        print('-> 89%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p, np.abs(p_err[1]-p),np.abs(p-p_err[0]))) #Printing compton edge value (ADC) to console
         plt.plot(p, y, color='black', marker='o', markersize=10, label='Compton edge (89%)') #Mark 89% of maximum point
     if isnan(y2)==False: #If 50% Compton edge was found, print the error in G(x) (y-value)
         print('-> 50%%, G(x) = %.4f +/- %.4f'%(y2, y2_err))
-        print('-> 50%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p2, np.abs(p2-p2_err[0]),np.abs(p2_err[1]-p2))) #Printing compton edge value (ADC) to console
+        print('-> 50%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p2, np.abs(p2_err[1]-p2),np.abs(p2-p2_err[0]))) #Printing compton edge value (ADC) to console
         plt.plot(p2, y2, color='green', marker='o', markersize=10, label='Compton edge (50%)') #Mark 50% of maximum point
     print('-> Photon energy: %.4f MeV' % Ef)
     print('-> Maximum electron recoil energy: %.4f MeV' % E_recoil_max)
     print('______________________________________________________________________')
     print()#Create vertical empty space in terminal
+    plt.xlabel(col)
+    plt.ylabel('counts')
     plt.legend()
     plt.show() #Show plots
     

@@ -13,13 +13,13 @@ from matplotlib.colors import LogNorm
 # By Nicholai Mauritzson 
 # ------------------------------------------------------------------------------
 
-path="/media/gheed/Seagate_Expansion_Drive1/Data/TNT/NE213_cup/Data1838_DF.hdf5"
+path="/media/gheed/Seagate_Expansion_Drive1/Data/TNT/NE213_cup/Data1829_DF.hdf5"
 df = pd.read_hdf(path) #Load data
 pyTag.calculate_ps(df) #Add pulse shape colum to df
 
 
 plt.figure(0)
-plt.hist(df.qdc_det0, 256, linewidth=2, histtype="step",label='LG, entries={}'.format(np.count_nonzero(df.qdc_det0)))
+plt.hist(df.qdc_det0, 8*1024, linewidth=2, histtype="step",label='LG, entries={}'.format(np.count_nonzero(df.qdc_det0)))
 plt.legend()
 plt.title("Long gate QDC neutron detector")
 plt.ylabel("counts")

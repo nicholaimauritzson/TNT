@@ -162,8 +162,8 @@ def comptonMax(Ef):
     Edit: 2019-03-26
     """
     return 2*Ef**2/(0.5109989+2*Ef)
-
-def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=None):
+    
+def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     """
     Method is designed to fit and return the edge positions and maximum electron recoil energy of a Compton distribution.
     ---------------------------------------------------------------------
@@ -173,9 +173,6 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
     - 'min'......The minimum x-value (ADC) for fit
     - 'max'......The maximum x-value (ADC) for fit
     - 'Ef'.......The photon energy in MeV
-    - 'w1'........Weight for 'data' to be used in plt.hist(). Length of 'w1' needs to be len('data'). Will only use if != None
-    - 'w2'........Weight for 'BG' to be used in plt.hist(). Length of 'w2' needs to be len('BG'). Will only use if != None
-    - 'BG'........Background data to be subtraced prior to fitting. Will only use if != None
     - 'fit_lim' : Boundary parameters for scipy.optimize.curve_fit method (Guassian):
                   Format: fit_lim = [[const_min, mean_min, sigma_min],[const_max, mean_max, sigma_max]] 
 
@@ -194,19 +191,13 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
     """
 
     #1)____________MAKE HISTOGRAM AND EXTRACT X,Y VALUES___________
-    N = np.histogram(data[col], range=[min, max], bins=(max-min), weights = w1) #Create weighted histogram of 'data' and save x,y data.
-    if w1 is not None and w2 is not None: #Check if background should be subtracted.
-        NBG = np.histogram(BG[col], range=[min, max], bins=(max-min), weights = w2) #Create weighted histogram of 'BG' and save x,y data.
-        x = N[1][:-1]   #Set bin positions as x values
-        y = N[0]-NBG[0] #Set bin heights as y values
-    else:
-        x = N[1][:-1]   #Set bin positions as x values
-        y = N[0]        #Set bin heights as y values
+    N = np.histogram(data[col], range=[min, max], bins=(max-min)) #Create histogram of 'data' and save x,y data.
+    x = N[1][:-1]   #Set bin positions as x values
+    y = N[0]        #Set bin heights as y values
+    
+    #2)____________FITS HISTOGRAM DATA WITH GAUSSIAN_______________
     meanTEMP = np.max(y)#sum(x * y) / sum(y)  #Calcaulate the mean value of distibution. Used as first quess for Gaussian fit.
     sigmaTEMP = np.sqrt(sum(y * (x - meanTEMP)**2) / sum(y)) #Calculate stdev of distribution. Used as first geuss for Gaussian fit.
-
-
-    #2)____________FITS HISTOGRAM DATA WITH GAUSSIAN_______________
     if fit_lim != None: #Check if boundary limits are enforced for Gaussian fit
         popt, pcov = curve_fit(gaussFunc, x, y, p0 = [np.max(y), meanTEMP, sigmaTEMP], bounds=fit_lim)
     else: #If not...
@@ -285,14 +276,11 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
                 p2_err[1] = i #Saving compton edge value
                 flag2 = 1
 
-    #Printing results to console
-
 
     #6)____________PLOTTING AND PRINTING TO CONSOLE________________________ 
     x_long = np.arange(min, max, 0.01) #Increse plotting points for Gaussian plot by x100
-    Nfin = np.histogram(data.qdc_det0, range=(min-300, max+300), bins=(max-min+600), weights=w1) #Recreated baground subtracted data with a wider range for plotting.
-    NfinBG = np.histogram(BG.qdc_det0, range=(min-300, max+300), bins=(max-min+600), weights=w2) #Recreated baground subtracted data with a wider range for plotting.
-    plt.plot(Nfin[1][:-1], (Nfin[0]-NfinBG[0]), label='data') #Plot histogram of bakgroundsubtracted input data
+    Nfin = np.histogram(data.qdc_det0, range=(min-500, max+500), bins=(max-min+1000)) #Recreated baground subtracted data with a wider range for plotting.
+    plt.plot(Nfin[1][:-1], Nfin[0], label='data') #Plot histogram of bakgroundsubtracted input data
     plt.plot(x_long, gaussFunc(x_long, const, mean, sigma), color='r', linewidth=3, label='Gaussian fit') #Plot Gaussian fit
     print('______________________________________________________________________')
     print('>>>> Results <<<<')
@@ -314,6 +302,7 @@ def comptonEdgeFit(data, col, min, max, Ef, w1=None, w2=None, BG=None, fit_lim=N
     plt.show() #Show plots
     
     return p, p2, E_recoil_max
+
 
 def errorPropMulti(R, variables, errors):
     """

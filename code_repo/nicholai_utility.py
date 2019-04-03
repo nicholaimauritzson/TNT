@@ -52,6 +52,7 @@ def printFormatting(title, descriptions, values, errors=None, unit=('Units missi
             
     print('______________________________________________________________________')
     print()#Create vertical empty space in terminal
+    return 0
 
 def convertCookedData(load_path, save_path):
     """

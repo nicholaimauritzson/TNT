@@ -124,17 +124,28 @@ def gaussFit(x_input=None, y_input=None, start=0, stop=None):
 def gaussFunc(x, a, x0, sigma):
     """
         A generic Gaussian function.
-        - 'x' is the varable data (list format).
-        - 'a' is the constant.
-        - 'x0' is the mean value of distribution position.
-        - 'sigma' is the standard diviation of the distribution.
+        - 'x'......This is the independent variable data (list format).
+        - 'a'......This is a constant.
+        - 'x0'.....This is the mean value of distribution position.
+        - 'sigma'..This is the standard diviation of the distribution.
         ---------------------------------------------------------------------
         Nicholai Mauritzson
-        Edit: 2018-12-11
+        Edit: 2019-04-03
     """
 
     return a * np.exp(-(x - x0)**2 / (2 * sigma**2))
 
+def linearFunc(x,k,m):
+    """
+    A generic linear equation.
+    - 'x'......This is the independent variable data (list format).
+    - 'k'......This is the coefficient to 'x' (slope).
+    - 'm'......This is a constant.
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-04-03
+    """
+    return k*x+m
 def ratioCalculator(df1, df2, col):
     """
         1) Takes two pandas data frames 'df1' and 'df2' as inputs and name of column 'col' to use.
@@ -162,7 +173,7 @@ def comptonMax(Ef):
     Edit: 2019-03-26
     """
     return 2*Ef**2/(0.5109989+2*Ef)
-    
+
 def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     """
     Method is designed to fit and return the edge positions and maximum electron recoil energy of a Compton distribution.
@@ -301,7 +312,7 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     plt.legend()
     plt.show() #Show plots
     
-    return p, p2, E_recoil_max
+    return (p,p2), (y,y2), (const, mean, sigma), (fitError[0], fitError[1], fitError[2])
 
 
 def errorPropMulti(R, variables, errors):

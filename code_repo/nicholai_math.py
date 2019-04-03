@@ -146,6 +146,19 @@ def linearFunc(x,k,m):
     Edit: 2019-04-03
     """
     return k*x+m
+
+def expFunc(x, A, B):
+    """
+    A generic exponetial function (base e).
+    - 'x'......This is the independent variable data (list format).
+    - 'A'......This is a constant.
+    - 'B'......This is a constant.
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-04-03
+    """
+    return A+B*np.exp(x)
+
 def ratioCalculator(df1, df2, col):
     """
         1) Takes two pandas data frames 'df1' and 'df2' as inputs and name of column 'col' to use.
@@ -313,7 +326,6 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     plt.show() #Show plots
     
     return (p,p2), (y,y2), (const, mean, sigma), (fitError[0], fitError[1], fitError[2])
-
 
 def errorPropMulti(R, variables, errors):
     """

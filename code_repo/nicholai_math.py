@@ -207,8 +207,13 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     5) Calculated the error of Compton edge for @ 89% and 50% using error propagation.
     6) Plots histogram of original data, Gaussian fit and markers for 89% and 50% of maximum.
 
-    Method returns array containing the 89% of maximum [ADC] 'p', 
-    50% of maximum [ADC] 'p2' and the calculated maximum electron recoil energy in MeV 'E_recoil_max'.
+    Method returns four lists containg the x-value (ADC) for CE at 89% and 50%, the y-values for CE at 89% and 50%, 
+    the optimal fitting paramters, const, mean and sigma and their errors.
+    - (p,p2) 
+    - (y,y2)
+    - (const, mean, sigma),
+    - (fitError[0], fitError[1], fitError[2])
+    
     ---------------------------------------------------------------------
     Nicholai Mauritzson
     Edit: 2019-03-29
@@ -348,12 +353,12 @@ def errorPropMulti(R, variables, errors):
 
 def errorPropAdd(errors):
     """
-    Method for calculating error of R through error propagation with addition and/or subtraction.
+    Method for calculating error propagation with addition and/or subtraction.
     Ex: R(x)=a+b-c, were a,b and c are the variables.
     Input:
     - 'errors'.....This is the uncertainties of the variables as list = (err_a, err_b, err_c).
     Return:
-    - Error of R.
+    - Error of sum.
     ---------------------------------------------------------------------
     Nicholai Mauritzson
     Edit: 2019-03-31
@@ -362,6 +367,20 @@ def errorPropAdd(errors):
     for i in range(len(errors)):
         sum += errors[i]**2
     return np.sqrt(sum)
+
+def errorPropConst(var_err, constant):
+    """
+    Method for calculating error propagation with multiplication with a constant.
+    Ex: R(x)=a*x, were a is a constant and x is a variable with error.
+    Input:
+    - 'var_err'.....This is the uncertainty of the variable x.
+    Return:
+    - Error of product.
+    ---------------------------------------------------------------------
+    Nicholai Mauritzson
+    Edit: 2019-04-04
+    """
+    return var_err*constant
 
 def errorPropPower(R, variable, error, exponent):
     """

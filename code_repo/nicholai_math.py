@@ -85,41 +85,28 @@ def gaussFit(x_input=None, y_input=None, start=0, stop=None):
         Nicholai Mauritzson
         Edit: 2019-03-27
     """
+    
     if stop == None:
-        stop = len(x_input)
-    # if x_input == None or y_input == None:
-        # raise ValueError('Argument(s) missing! No imput for col1 and/or col2 was given.')
-
+        stop = np.max(x_input)
+    
     y = []
     x = []
     for i in range(len(x_input)):
         if x_input[i] >= start and x_input[i] <= stop:
             x.append(x_input[i]) #Get x-values in range to fit
             y.append(y_input[i]) #Get y-values in range to fit
-    # x = [x for x in x_value if x <= stop and x >= start]
-    # x = np.array(x>=start & x<=stop)]) 
-    # y = np.array(df[col2][(df[col1]>=start) & (df[col1]<=stop)]) #Get y-values in range to fit
-
-    # print(x)
-    # print(y)
+    
     place_holder = 0
     for i in range(len(x)):
         place_holder += x[i] * y[i]
     meanTEMP = place_holder/sum(y)
     place_holder = 0
 
-    # meanTEMP = sum((lambda x,y:x*y,x,y) / sum(y))
-    for i in range(len(x)):
-        place_holder =+ (y[i] * (x[i] - meanTEMP)*(x[i] - meanTEMP))
-    
-    sigmaTEMP = np.sqrt(place_holder / sum(y))
-
+    meanTEMP = np.mean(x)
+    sigmaTEMP = np.std(x)
     popt, pcov = curve_fit(gaussFunc, x, y, p0 = [max(y), meanTEMP, sigmaTEMP])
-    const = popt[0]
-    mean = popt[1]
-    sigma = popt[2]
 
-    return const, mean, sigma
+    return popt, np.sqrt(np.diag(pcov))
 
 def gaussFunc(x, a, x0, sigma):
     """
@@ -132,7 +119,6 @@ def gaussFunc(x, a, x0, sigma):
         Nicholai Mauritzson
         Edit: 2019-04-03
     """
-
     return a * np.exp(-(x - x0)**2 / (2 * sigma**2))
 
 def linearFunc(x,k,m):
@@ -159,6 +145,12 @@ def expFunc(x, A, B):
     """
     return A+B*np.exp(x)
 
+def chi2(f_obs, f_exp):
+    X = 0
+    for i in range(len(f_obs)):
+        X += (f_obs[i]-f_exp[i])**2/f_exp[i]
+    return X
+    
 def ratioCalculator(df1, df2, col):
     """
         1) Takes two pandas data frames 'df1' and 'df2' as inputs and name of column 'col' to use.
@@ -244,8 +236,7 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     print('______________________________________________________________________')
     print() #Create vertical space on terminal
 
-
-    #3)___________FINDING COMPTON EDGE @ 89% OF MAX________________Knox Method 
+    #3a)__________FINDING COMPTON EDGE @ 89% OF MAX________________Knox Method 
     print('______________________________________________________________________')
     print('>>>> Finding compton edges... <<<<')  
     for i in tqdm(np.arange(min, max, 0.001), desc='Finding CE @ 89% of max'): #Loop for finding 89% of maximum with 4 decimal points
@@ -258,7 +249,7 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
         y = np.nan
         print('!!! FAILURE TO LOCATE CE @ 89%%... !!!')
 
-    #3)___________FINDING COMPTON EDGE @ 50% OF MAX_______________Flynn Method
+    #3b)__________FINDING COMPTON EDGE @ 50% OF MAX_______________Flynn Method
     for i in tqdm(np.arange(min, max, 0.001), desc='Finding CE @ 50% of max'): #Loop for finding 50% of maximum with 4 decimal points
         if gaussFunc(i, const, mean, sigma)<=0.5*const:
             p2 = i #Saving compton edge value
@@ -271,40 +262,17 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     print('______________________________________________________________________')
     print()#Create vertical empty space in terminal
 
-
     #4)____________MAXIMUM ELECTRON RECOIL ENERGY__________________
     E_recoil_max = comptonMax(Ef) #Calculate maximum electron recoil energy
-
 
     #5)____________ERROR PROPAGATION CALCULATION___________________
     if isnan(y)==False:
         y_err = errorPropGauss(y, p, const, fitError[0], mean, fitError[1], sigma, fitError[2])
         p_err = errorPropComptonEdgeFit(fitError[1], fitError[2], .89) #Find the error in Compton edge position at 89%
-        # compare = [y-y_err, y+y_err]
-        # flag1, flag2 = 0, 0
-        # for i in tqdm(np.arange(min, max, 0.001), desc='Calculating errors for CE @ 89%'): #Loop for finding 89% of maximum with 3 decimal points
-        #     val = gaussFunc(i, const, mean, sigma)
-        #     if val <= compare[0] and flag1 == 0:
-        #         p_err[0] = i #Saving compton edge value
-        #         flag1 = 1
-        #     if val <= compare[1] and flag2 == 0:
-        #         p_err[1] = i #Saving compton edge value
-        #         flag2 = 1
-        
+     
     if isnan(y2)==False:
         y2_err = errorPropGauss(y2, p2, const, fitError[0], mean, fitError[1], sigma, fitError[2])
         p2_err = errorPropComptonEdgeFit(fitError[1], fitError[2], .50) #Find the error in Compton edge position at 50%
-        # compare2 = [y2-y2_err, y2+y2_err]
-        # flag1, flag2 = 0, 0
-        # for i in tqdm(np.arange(min, max, 0.001), desc='Caclulating errors for CE @ 50%'): #Loop for finding 50% of maximum with 3 decimal points
-        #     val = gaussFunc(i, const, mean, sigma)
-        #     if val <= compare2[0] and flag1 == 0:
-        #         p2_err[0] = i #Saving compton edge value
-        #         flag1 = 1
-        #     if val <= compare2[1] and flag2 == 0:
-        #         p2_err[1] = i #Saving compton edge value
-        #         flag2 = 1
-
 
     #6)____________PLOTTING AND PRINTING TO CONSOLE________________________ 
     x_long = np.arange(min, max, 0.01) #Increse plotting points for Gaussian plot by x100

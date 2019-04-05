@@ -279,31 +279,31 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     #5)____________ERROR PROPAGATION CALCULATION___________________
     if isnan(y)==False:
         y_err = errorPropGauss(y, p, const, fitError[0], mean, fitError[1], sigma, fitError[2])
-        p_err = [0, 0]
-        compare = [y-y_err, y+y_err]
-        flag1, flag2 = 0, 0
-        for i in tqdm(np.arange(min, max, 0.001), desc='Calculating errors for CE @ 89%'): #Loop for finding 89% of maximum with 3 decimal points
-            val = gaussFunc(i, const, mean, sigma)
-            if val <= compare[0] and flag1 == 0:
-                p_err[0] = i #Saving compton edge value
-                flag1 = 1
-            if val <= compare[1] and flag2 == 0:
-                p_err[1] = i #Saving compton edge value
-                flag2 = 1
+        p_err = errorPropComptonEdgeFit(fitError[1], fitError[2], .89) #Find the error in Compton edge position at 89%
+        # compare = [y-y_err, y+y_err]
+        # flag1, flag2 = 0, 0
+        # for i in tqdm(np.arange(min, max, 0.001), desc='Calculating errors for CE @ 89%'): #Loop for finding 89% of maximum with 3 decimal points
+        #     val = gaussFunc(i, const, mean, sigma)
+        #     if val <= compare[0] and flag1 == 0:
+        #         p_err[0] = i #Saving compton edge value
+        #         flag1 = 1
+        #     if val <= compare[1] and flag2 == 0:
+        #         p_err[1] = i #Saving compton edge value
+        #         flag2 = 1
         
     if isnan(y2)==False:
         y2_err = errorPropGauss(y2, p2, const, fitError[0], mean, fitError[1], sigma, fitError[2])
-        p2_err = [0, 0]
-        compare2 = [y2-y2_err, y2+y2_err]
-        flag1, flag2 = 0, 0
-        for i in tqdm(np.arange(min, max, 0.001), desc='Caclulating errors for CE @ 50%'): #Loop for finding 50% of maximum with 3 decimal points
-            val = gaussFunc(i, const, mean, sigma)
-            if val <= compare2[0] and flag1 == 0:
-                p2_err[0] = i #Saving compton edge value
-                flag1 = 1
-            if val <= compare2[1] and flag2 == 0:
-                p2_err[1] = i #Saving compton edge value
-                flag2 = 1
+        p2_err = errorPropComptonEdgeFit(fitError[1], fitError[2], .50) #Find the error in Compton edge position at 50%
+        # compare2 = [y2-y2_err, y2+y2_err]
+        # flag1, flag2 = 0, 0
+        # for i in tqdm(np.arange(min, max, 0.001), desc='Caclulating errors for CE @ 50%'): #Loop for finding 50% of maximum with 3 decimal points
+        #     val = gaussFunc(i, const, mean, sigma)
+        #     if val <= compare2[0] and flag1 == 0:
+        #         p2_err[0] = i #Saving compton edge value
+        #         flag1 = 1
+        #     if val <= compare2[1] and flag2 == 0:
+        #         p2_err[1] = i #Saving compton edge value
+        #         flag2 = 1
 
 
     #6)____________PLOTTING AND PRINTING TO CONSOLE________________________ 
@@ -315,11 +315,11 @@ def comptonEdgeFit(data, col, min, max, Ef, fit_lim=None):
     print('>>>> Results <<<<')
     if isnan(y)==False: #If 89% Compton edge was found, print the error in G(x) (y-value)
         print('-> 89%%, G(x) = %.4f +/- %.4f'%(y, y_err))
-        print('-> 89%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p, np.abs(p_err[1]-p),np.abs(p-p_err[0]))) #Printing compton edge value (ADC) to console
+        print('-> 89%% Compton edge found at ADC value: %.4f (+/-%.4f)'  % (p, p_err)) #Printing compton edge value (ADC) to console
         plt.plot(p, y, color='black', marker='o', markersize=10, label='Compton edge (89%)') #Mark 89% of maximum point
     if isnan(y2)==False: #If 50% Compton edge was found, print the error in G(x) (y-value)
         print('-> 50%%, G(x) = %.4f +/- %.4f'%(y2, y2_err))
-        print('-> 50%% Compton edge found at ADC value: %.4f (+%.4f, -%.4f)'  % (p2, np.abs(p2_err[1]-p2),np.abs(p2-p2_err[0]))) #Printing compton edge value (ADC) to console
+        print('-> 50%% Compton edge found at ADC value: %.4f (+/-%.4f)'  % (p2, p2_err)) #Printing compton edge value (ADC) to console
         plt.plot(p2, y2, color='green', marker='o', markersize=10, label='Compton edge (50%)') #Mark 50% of maximum point
     print('-> Photon energy: %.4f MeV' % Ef)
     print('-> Maximum electron recoil energy: %.4f MeV' % E_recoil_max)

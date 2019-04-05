@@ -440,5 +440,14 @@ def errorPropGauss(R, x, const, const_err, mean, mean_err, sigma, sigma_err):
 
     delta = const*gamma
     delta_err = errorPropMulti(delta, (const, gamma), (const_err, gamma_err))
-
+    
     return delta_err
+
+def errorPropComptonEdgeFit(mean_err, sigma_err, g):
+    """
+    Find the error of x when G(x)= g*A = A*e^(1/2*(x-mean)^2/sigma^2), were 'g' is the fraction of A at which point the Compton edge is located. 
+    Example:    g = .89 (Knox Method)
+                g = .50 (Flynn Method
+    Originally derived by Rasmus Höjers.
+    """
+    return mean_err + sigma_err*np.sqrt(-2*np.log(g))

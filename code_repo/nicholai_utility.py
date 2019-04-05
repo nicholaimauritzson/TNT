@@ -74,3 +74,10 @@ def convertCookedData(load_path, save_path):
         return 0
 
     df.to_hdf(save_path, key="w")
+
+def randomGauss(mean, sigma, numEnt)
+    """
+    Methods takes mean and sigma as well as number of entries and returns an array of normally distributed values around 'mean'
+    
+    """
+    return np.random.normal(mean, sigma, numEnt)

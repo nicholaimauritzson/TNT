@@ -84,10 +84,9 @@ def randomGauss(mean, sigma, numEnt):
 
 def tofTimeCal(d, t_g, t_n):
     """
-    'd'.....This is distance from source to detector (costant).
-    't_g'...This is the position of the gamma flash (constant).
-    't_n'...This is the TDC value for neutron events (variable).
-    'tdc_cal'...This is the calibration coefficient for the TDC module in nanoseconds. i.e. tdc_cal*t_n = time in ns
+    'd'.....This is distance from source to detector in meters.
+    't_g'...This is the position of the gamma flash (TDC units).
+    't_n'...This is the TDC value for neutron events (TDC units).
     
     Returns:
     Calibrated time of flight value of the neutron.
@@ -99,5 +98,21 @@ def tofTimeCal(d, t_g, t_n):
     return T0 - t_n
 
 def getBinCenters(bins):
-    """ calculate center values for given bins """
+    """ 
+    Calculate center values for given bins. 
+    Author: Hanno Perrey 
+    """
     return np.array([np.mean([bins[i],bins[i+1]]) for i in range(0, len(bins)-1)])
+
+def tofEnergyCal(bins, distance):
+    """
+    Method for converting TOF [ns] to energy [MeV] of neutrons. 
+    'bins'.......This is the bin values (time in ns).
+    'distance'...This is the distance between the detector and source in meters.
+
+    Returns:
+    Calculated neutron energy in MeV
+    """
+    m_n = 938.27231 #mass of neutron MeV/c^2
+    c = 2.99792458e8 #speed of light
+    return  0.5 * (m_n / pow(c, 2)) * (pow(distance, 2) / pow(bins*1e-9, 2))

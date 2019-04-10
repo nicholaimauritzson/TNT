@@ -75,9 +75,25 @@ def convertCookedData(load_path, save_path):
 
     df.to_hdf(save_path, key="w")
 
-def randomGauss(mean, sigma, numEnt)
+def randomGauss(mean, sigma, numEnt):
     """
     Methods takes mean and sigma as well as number of entries and returns an array of normally distributed values around 'mean'
     
     """
     return np.random.normal(mean, sigma, numEnt)
+
+def tofTimeCal(d, t_g, t_n):
+    """
+    'd'.....This is distance from source to detector (costant).
+    't_g'...This is the position of the gamma flash (constant).
+    't_n'...This is the TDC value for neutron events (variable).
+    'tdc_cal'...This is the calibration coefficient for the TDC module in nanoseconds. i.e. tdc_cal*t_n = time in ns
+    
+    Returns:
+    Calibrated time of flight value of the neutron.
+    """
+    tdc_cal = [0.27937529, 0.19022946] #Linear calibration function values to convert TDC value to ns.
+    t_g = tdc_cal[0]*t_g + tdc_cal[1] #Convert from TDC valye to ns
+    t_n = tdc_cal[0]*t_n + tdc_cal[1] #Convert from TDC valye to ns
+    T0 = d/299792458 + t_g #Calculate time zero from the distance and position of the gamma flash (t_g)
+    return T0 - t_n

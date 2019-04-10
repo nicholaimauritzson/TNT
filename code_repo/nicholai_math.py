@@ -81,6 +81,10 @@ def gaussFit(x_input=None, y_input=None, start=0, stop=None):
         2) Fits the selected intervall with a Gaussian function 'gaussFunc()'.
         3) Returns the constant ('const'), mean value ('mean') and the standard diviation ('sigma') of the fit.
         4) Optional: If no values for start and stop are given then the default is to try and fit the entire spectrum.
+
+        Returns:
+        popt - Containing the fitted variables (np.array)
+        np.sqrt(np.diag(pcov)) - Containing the errors for the fitted variabled (np.array)
         ---------------------------------------------------------------------
         Nicholai Mauritzson
         Edit: 2019-03-27

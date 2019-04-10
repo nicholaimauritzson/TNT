@@ -95,5 +95,9 @@ def tofTimeCal(d, t_g, t_n):
     tdc_cal = [0.27937529, 0.19022946] #Linear calibration function values to convert TDC value to ns.
     t_g = tdc_cal[0]*t_g + tdc_cal[1] #Convert from TDC valye to ns
     t_n = tdc_cal[0]*t_n + tdc_cal[1] #Convert from TDC valye to ns
-    T0 = d/299792458 + t_g #Calculate time zero from the distance and position of the gamma flash (t_g)
+    T0 = d/2.99792458e8 + t_g #Calculate time zero from the distance and position of the gamma flash (t_g)
     return T0 - t_n
+
+def getBinCenters(bins):
+    """ calculate center values for given bins """
+    return np.array([np.mean([bins[i],bins[i+1]]) for i in range(0, len(bins)-1)])

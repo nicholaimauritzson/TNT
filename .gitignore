@@ -60,6 +60,11 @@ Thumbs.db
 *.xls
 *.doc
 
+# Others
+############################
+*.odt
+*.ods
+
 # Folders #
 #######################
 code_repo/tof/*
